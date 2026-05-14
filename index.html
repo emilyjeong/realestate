@@ -8,16 +8,16 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-<!-- 🔑 여기에 본인 JavaScript 키 입력 -->
+<!-- 🔑 JS 키 + autoload=false 추가 -->
 
-<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=c39d5438e2baf9e5a326fb7d5771faa4"></script> 
+<script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=c39d5438e2baf9e5a326fb7d5771faa4&autoload=false"></script>
 
 <style>
   :root {
     --bg:        #0a0a09;
     --surface:   #0f0f0e;
     --card:      #161513;
-    --card-hi:   #1c1b19; 
+    --card-hi:   #1c1b19;
     --border:    #2a2926;
     --border-mid:#353330;
     --ink:       #f0ede8;
@@ -45,14 +45,13 @@
     overflow: hidden;
   }
 
-  /* ── 레이아웃 ── */
   #app {
     display: flex;
     flex-direction: column;
     height: 100vh;
   }
 
-  /* ── 상단 헤더 ── */
+  /* 헤더 */
   #header {
     background: var(--surface);
     border-bottom: 1px solid var(--border);
@@ -82,7 +81,7 @@
     border: 1px solid rgba(0,201,138,.25);
   }
 
-  /* ── 검색바 ── */
+  /* 검색바 */
   #searchbar {
     padding: 10px var(--pad);
     background: var(--surface);
@@ -103,11 +102,7 @@
     gap: 8px;
   }
 
-  .search-icon {
-    font-size: 14px;
-    color: var(--ink-dim);
-    flex-shrink: 0;
-  }
+  .search-icon { font-size: 14px; color: var(--ink-dim); flex-shrink: 0; }
 
   .search-input {
     background: transparent;
@@ -137,24 +132,18 @@
     transition: border-color .2s, color .2s;
   }
 
-  .filter-btn:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-  }
+  .filter-btn:hover { border-color: var(--accent); color: var(--accent); }
 
-  /* ── 지도 컨테이너 ── */
+  /* 지도 */
   #map-container {
     flex: 1;
     position: relative;
     overflow: hidden;
   }
 
-  #map {
-    width: 100%;
-    height: 100%;
-  }
+  #map { width: 100%; height: 100%; }
 
-  /* ── 지도 로딩 오버레이 ── */
+  /* 로딩 */
   #map-loading {
     position: absolute;
     inset: 0;
@@ -168,10 +157,7 @@
     transition: opacity .4s;
   }
 
-  #map-loading.hidden {
-    opacity: 0;
-    pointer-events: none;
-  }
+  #map-loading.hidden { opacity: 0; pointer-events: none; }
 
   .loading-spinner {
     width: 36px; height: 36px;
@@ -189,7 +175,7 @@
     font-family: var(--font-mono);
   }
 
-  /* ── 하단 네비게이션 ── */
+  /* 하단 네비 */
   #bottom-nav {
     background: var(--surface);
     border-top: 1px solid var(--border);
@@ -215,10 +201,9 @@
 
   .nav-item.active { color: var(--info); }
   .nav-item:hover:not(.active) { color: var(--ink-mid); }
-
   .nav-icon { font-size: 18px; }
 
-  /* ── 내 위치 버튼 ── */
+  /* 내 위치 버튼 */
   #myloc-btn {
     position: absolute;
     bottom: 20px;
@@ -241,7 +226,7 @@
   #myloc-btn:hover { border-color: var(--info); transform: scale(1.05); }
   #myloc-btn:active { transform: scale(.95); }
 
-  /* ── 카운터 배지 ── */
+  /* 카운터 배지 */
   #count-badge {
     position: absolute;
     top: 14px;
@@ -264,10 +249,6 @@
     font-weight: 700;
     color: var(--accent);
   }
-
-  /* ── 카카오 지도 UI 커스터마이징 ── */
-  /* 카카오 로고, 저작권 표시 위치 조정 */
-  .map_copyright { bottom: 70px !important; }
 </style>
 
 </head>
@@ -275,73 +256,48 @@
 
 <div id="app">
 
-  <!-- 헤더 -->
-
   <div id="header">
     <div class="header-title">🏢 부동산 지도</div>
     <div class="header-badge">LIVE</div>
   </div>
-
-  <!-- 검색바 -->
 
   <div id="searchbar">
     <div class="search-input-wrap">
       <span class="search-icon">🔍</span>
       <input class="search-input" type="text" placeholder="지역·단지명으로 검색" id="search-input">
     </div>
-    <button class="filter-btn" id="filter-btn">
-      ⚙ 필터
-    </button>
+    <button class="filter-btn" id="filter-btn">⚙ 필터</button>
   </div>
-
-  <!-- 지도 -->
 
   <div id="map-container">
     <div id="map"></div>
 
-
-<!-- 로딩 -->
+```
 <div id="map-loading">
   <div class="loading-spinner"></div>
   <span class="loading-text">지도 불러오는 중...</span>
 </div>
 
-<!-- 단지 카운터 -->
 <div id="count-badge">
   관심 단지 <span class="cnt" id="apt-count">0</span>개
 </div>
 
-<!-- 내 위치 버튼 -->
 <button id="myloc-btn" title="내 위치로 이동">📍</button>
-
+```
 
   </div>
 
-  <!-- 하단 네비 -->
-
   <div id="bottom-nav">
-    <div class="nav-item active" data-tab="map">
-      <span class="nav-icon">🗺</span>지도
-    </div>
-    <div class="nav-item" data-tab="list">
-      <span class="nav-icon">📋</span>목록
-    </div>
-    <div class="nav-item" data-tab="wish">
-      <span class="nav-icon">⭐</span>관심
-    </div>
-    <div class="nav-item" data-tab="compare">
-      <span class="nav-icon">📊</span>비교
-    </div>
+    <div class="nav-item active" data-tab="map"><span class="nav-icon">🗺</span>지도</div>
+    <div class="nav-item" data-tab="list"><span class="nav-icon">📋</span>목록</div>
+    <div class="nav-item" data-tab="wish"><span class="nav-icon">⭐</span>관심</div>
+    <div class="nav-item" data-tab="compare"><span class="nav-icon">📊</span>비교</div>
   </div>
 
 </div>
 
 <script>
-// ════════════════════════════════════════════════
-// 🗺 STEP 1 — 기본 지도 초기화
-// ════════════════════════════════════════════════
-
-// ── 임시 테스트 데이터 (나중에 Google Sheets JSON으로 교체) ──
+// 임시 테스트 데이터 (나중에 Google Sheets JSON으로 교체)
 const APT_DATA = [
   {
     id: 1,
@@ -350,13 +306,9 @@ const APT_DATA = [
     address: '서울 마포구 아현동',
     lat: 37.5547, lng: 126.9572,
     area: '84㎡', floor: '25F', year: 2019,
-    price: '11.9억',
-    priceNum: 11.9,
-    jeonse: '8.0억',
-    jeonseRate: 67,
-    change1y: '+4.4%',
-    tag: 'wish',   // wish | watching | visited
-    myScore: 7.8,
+    price: '11.9억', priceNum: 11.9,
+    jeonse: '8.0억', jeonseRate: 67,
+    change1y: '+4.4%', tag: 'wish', myScore: 7.8,
   },
   {
     id: 2,
@@ -365,13 +317,9 @@ const APT_DATA = [
     address: '서울 마포구 공덕동',
     lat: 37.5445, lng: 126.9512,
     area: '59㎡', floor: '12F', year: 2016,
-    price: '8.2억',
-    priceNum: 8.2,
-    jeonse: '5.5억',
-    jeonseRate: 67,
-    change1y: '+2.1%',
-    tag: 'watching',
-    myScore: 6.5,
+    price: '8.2억', priceNum: 8.2,
+    jeonse: '5.5억', jeonseRate: 67,
+    change1y: '+2.1%', tag: 'watching', myScore: 6.5,
   },
   {
     id: 3,
@@ -380,32 +328,24 @@ const APT_DATA = [
     address: '서울 마포구 도화동',
     lat: 37.5402, lng: 126.9489,
     area: '114㎡', floor: '8F', year: 2004,
-    price: '13.5억',
-    priceNum: 13.5,
-    jeonse: '7.8억',
-    jeonseRate: 58,
-    change1y: '+1.8%',
-    tag: 'visited',
-    myScore: 8.2,
+    price: '13.5억', priceNum: 13.5,
+    jeonse: '7.8억', jeonseRate: 58,
+    change1y: '+1.8%', tag: 'visited', myScore: 8.2,
   },
 ];
 
-// ── 지도 초기화 ──
 let map;
-let markers = [];
 
 function initMap() {
   const container = document.getElementById('map');
-
-  // 서울 마포구 중심 좌표로 초기화
   const options = {
     center: new kakao.maps.LatLng(37.548, 126.953),
-    level: 4,  // 줌 레벨 (숫자 낮을수록 확대)
+    level: 4,
   };
 
   map = new kakao.maps.Map(container, options);
 
-  // 로딩 오버레이 제거
+  // 로딩 제거
   const loading = document.getElementById('map-loading');
   loading.classList.add('hidden');
   setTimeout(() => loading.remove(), 500);
@@ -413,98 +353,59 @@ function initMap() {
   // 마커 생성
   addMarkers();
 
-  // 단지 수 업데이트
+  // 단지 수
   document.getElementById('apt-count').textContent = APT_DATA.length;
 }
 
-// ── 마커 생성 ──
 function addMarkers() {
+  const colors = {
+    wish:     { bg: '#5aabf0', text: '#fff', border: '#3a8bd0' },
+    watching: { bg: '#e8b800', text: '#000', border: '#c09800' },
+    visited:  { bg: '#00c98a', text: '#000', border: '#009a6a' },
+  };
+
   APT_DATA.forEach(apt => {
     const position = new kakao.maps.LatLng(apt.lat, apt.lng);
-
-    // 마커 색상 결정
-    const colors = {
-      wish:     { bg: '#5aabf0', text: '#fff', border: '#3a8bd0' },
-      watching: { bg: '#e8b800', text: '#000', border: '#c09800' },
-      visited:  { bg: '#00c98a', text: '#000', border: '#009a6a' },
-    };
     const c = colors[apt.tag] || colors.watching;
 
-    // 커스텀 마커 HTML
     const markerHTML = `
-      <div style="
-        position: relative;
-        cursor: pointer;
-        transform: translate(-50%, -100%);
-      ">
-        <div style="
-          background: ${c.bg};
-          color: ${c.text};
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11px;
-          font-weight: 700;
-          padding: 5px 9px;
-          border-radius: 8px 8px 8px 0;
-          white-space: nowrap;
-          box-shadow: 0 3px 10px rgba(0,0,0,0.4);
-          border: 1px solid ${c.border};
-        ">${apt.price}</div>
-        <div style="
-          width: 0; height: 0;
-          border-left: 5px solid transparent;
-          border-right: 5px solid transparent;
-          border-top: 6px solid ${c.bg};
-          margin-left: 4px;
-        "></div>
+      <div style="position:relative;cursor:pointer;transform:translate(-50%,-100%);">
+        <div style="background:${c.bg};color:${c.text};font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;padding:5px 9px;border-radius:8px 8px 8px 0;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,.4);border:1px solid ${c.border};">${apt.price}</div>
+        <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid ${c.bg};margin-left:4px;"></div>
       </div>
     `;
 
-    const customOverlay = new kakao.maps.CustomOverlay({
-      position,
-      content: markerHTML,
-      yAnchor: 1,
-      zIndex: 3,
+    const overlay = new kakao.maps.CustomOverlay({
+      position, content: markerHTML, yAnchor: 1, zIndex: 3,
     });
 
-    customOverlay.setMap(map);
+    overlay.setMap(map);
 
-    // 클릭 이벤트 (다음 스텝에서 팝업 연결)
-    customOverlay.getContent()?.addEventListener?.('click', () => {
-      console.log('선택된 단지:', apt.name);
-      // TODO STEP 2: 팝업 표시
+    overlay.getContent().addEventListener('click', () => {
       alert(`${apt.name} ${apt.dong}\n${apt.price} · 전세가율 ${apt.jeonseRate}%\n\n👉 다음 스텝에서 상세 팝업 연결 예정!`);
     });
-
-    markers.push({ overlay: customOverlay, data: apt });
   });
 }
 
-// ── 내 위치 버튼 ──
+// 내 위치
 document.getElementById('myloc-btn').addEventListener('click', () => {
-  if (!navigator.geolocation) {
-    alert('위치 정보를 지원하지 않는 브라우저입니다.');
-    return;
-  }
+  if (!navigator.geolocation) return alert('위치 정보를 지원하지 않는 브라우저입니다.');
   navigator.geolocation.getCurrentPosition(pos => {
     const latlng = new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
     map.setCenter(latlng);
     map.setLevel(3);
-  }, () => {
-    alert('위치 정보를 가져올 수 없습니다.\n브라우저 권한을 확인해주세요.');
-  });
+  }, () => alert('위치 정보를 가져올 수 없습니다.'));
 });
 
-// ── 탭 네비 ──
+// 탭 네비
 document.querySelectorAll('.nav-item').forEach(item => {
   item.addEventListener('click', () => {
     document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
     item.classList.add('active');
-    // TODO: 탭별 화면 전환
   });
 });
 
-// ── 카카오 SDK 로드 완료 후 실행 ──
-// SDK가 비동기로 로드되므로 kakao.maps.load() 사용
+// 카카오 SDK 로드 후 실행 (autoload=false 이므로 반드시 필요)
 kakao.maps.load(initMap);
 </script>
 
