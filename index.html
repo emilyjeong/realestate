@@ -4,6 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="color-scheme" content="dark">
 <title>부동산 지도</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -26,7 +27,6 @@
   --radius:    14px;
   --radius-sm: 8px;
   --pad:       16px;
-  --gap:       10px;
   --font-sans: 'Pretendard', -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 }
@@ -60,21 +60,13 @@ flex-shrink:0;
 z-index:100;
 }
 
-.header-title {
-font-size:15px;
-font-weight:700;
-color:var(–ink);
-flex:1;
-}
+.header-title { font-size:15px; font-weight:700; color:var(–ink); flex:1; }
 
 .header-badge {
 font-family:var(–font-mono);
-font-size:10px;
-font-weight:600;
-padding:3px 8px;
-border-radius:20px;
-background:rgba(0,201,138,.12);
-color:var(–pos);
+font-size:10px; font-weight:600;
+padding:3px 8px; border-radius:20px;
+background:rgba(0,201,138,.12); color:var(–pos);
 border:1px solid rgba(0,201,138,.25);
 }
 
@@ -83,45 +75,74 @@ border:1px solid rgba(0,201,138,.25);
 padding:10px var(–pad);
 background:var(–surface);
 border-bottom:1px solid var(–border);
-display:flex;
-gap:8px;
+position:relative;
 flex-shrink:0;
+z-index:200;
 }
 
 .search-wrap {
-flex:1;
 background:var(–card);
 border:1px solid var(–border-mid);
 border-radius:var(–radius-sm);
 display:flex;
 align-items:center;
-padding:8px 12px;
+padding:9px 12px;
 gap:8px;
+transition:border-color .2s;
 }
 
+.search-wrap.focused { border-color:var(–info); }
+
 .search-wrap input {
-background:transparent;
-border:none;
-outline:none;
-font-family:var(–font-sans);
-font-size:13px;
-color:var(–ink);
-width:100%;
+background:transparent; border:none; outline:none;
+font-family:var(–font-sans); font-size:13px;
+color:var(–ink); width:100%;
 }
 
 .search-wrap input::placeholder { color:var(–ink-dim); }
 
-.filter-btn {
-background:var(–card);
+.search-clear {
+color:var(–ink-dim); font-size:14px;
+cursor:pointer; padding:2px 4px;
+display:none;
+}
+
+/* 검색 결과 드롭다운 */
+#search-results {
+position:absolute;
+top:100%; left:var(–pad); right:var(–pad);
+background:var(–card-hi);
 border:1px solid var(–border-mid);
 border-radius:var(–radius-sm);
-padding:0 14px;
-font-size:12px;
-font-weight:600;
-color:var(–ink-mid);
+overflow:hidden;
+display:none;
+z-index:300;
+box-shadow:0 8px 24px rgba(0,0,0,.5);
+}
+
+.search-result-item {
+padding:12px 14px;
+border-bottom:1px solid var(–border);
 cursor:pointer;
-white-space:nowrap;
-font-family:var(–font-sans);
+display:flex;
+justify-content:space-between;
+align-items:center;
+transition:background .15s;
+}
+
+.search-result-item:last-child { border-bottom:none; }
+.search-result-item:active { background:var(–card); }
+
+.sri-left {}
+.sri-name { font-size:13px; font-weight:600; color:var(–ink); }
+.sri-addr { font-size:11px; color:var(–ink-dim); margin-top:2px; }
+.sri-price { font-size:13px; font-weight:700; color:var(–accent); font-family:var(–font-mono); }
+
+.search-empty {
+padding:16px 14px;
+font-size:13px;
+color:var(–ink-dim);
+text-align:center;
 }
 
 /* ── 지도 ── */
@@ -131,19 +152,24 @@ position:relative;
 overflow:hidden;
 }
 
-#map { width:100%; height:100%; }
+/* 다크모드 강제 적용 */
+#map {
+width:100%; height:100%;
+filter: invert(93%) hue-rotate(180deg) brightness(0.95) saturate(0.85);
+}
+
+/* 마커는 다시 재반전해서 원래 색 유지 */
+.apt-marker {
+filter: invert(93%) hue-rotate(180deg) brightness(1.05) saturate(1.2);
+}
 
 /* ── 로딩 ── */
 #map-loading {
-position:absolute;
-inset:0;
+position:absolute; inset:0;
 background:var(–bg);
-display:flex;
-flex-direction:column;
-align-items:center;
-justify-content:center;
-gap:14px;
-z-index:50;
+display:flex; flex-direction:column;
+align-items:center; justify-content:center;
+gap:14px; z-index:50;
 transition:opacity .4s;
 }
 
@@ -159,72 +185,45 @@ animation:spin .8s linear infinite;
 
 @keyframes spin { to { transform:rotate(360deg); } }
 
-.loading-text {
-font-size:13px;
-color:var(–ink-dim);
-font-family:var(–font-mono);
-}
+.loading-text { font-size:13px; color:var(–ink-dim); font-family:var(–font-mono); }
 
 /* ── 카운터 배지 ── */
 #count-badge {
-position:absolute;
-top:14px;
-right:16px;
-background:var(–card-hi);
-border:1px solid var(–border-mid);
-border-radius:20px;
-padding:6px 12px;
-display:flex;
-align-items:center;
-gap:6px;
-font-size:11px;
-color:var(–ink-mid);
-z-index:10;
-backdrop-filter:blur(8px);
+position:absolute; top:14px; right:16px;
+background:var(–card-hi); border:1px solid var(–border-mid);
+border-radius:20px; padding:6px 12px;
+display:flex; align-items:center; gap:6px;
+font-size:11px; color:var(–ink-mid);
+z-index:10; backdrop-filter:blur(8px);
 }
 
-#count-badge .cnt {
-font-family:var(–font-mono);
-font-weight:700;
-color:var(–accent);
-}
+#count-badge .cnt { font-family:var(–font-mono); font-weight:700; color:var(–accent); }
 
 /* ── 내 위치 버튼 ── */
 #myloc-btn {
-position:absolute;
-bottom:20px;
-right:16px;
+position:absolute; bottom:20px; right:16px;
 width:44px; height:44px;
-background:var(–card-hi);
-border:1px solid var(–border-mid);
+background:var(–card-hi); border:1px solid var(–border-mid);
 border-radius:50%;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:20px;
-cursor:pointer;
-box-shadow:0 4px 16px rgba(0,0,0,.4);
-z-index:10;
-transition:border-color .2s, transform .15s;
+display:flex; align-items:center; justify-content:center;
+cursor:pointer; box-shadow:0 4px 16px rgba(0,0,0,.5);
+z-index:10; transition:border-color .2s, transform .15s;
 }
 
 #myloc-btn:active { transform:scale(.92); }
 
+/* 위치 아이콘 SVG */
+.loc-icon { width:20px; height:20px; }
+
 /* ── 팝업 ── */
 #popup {
-position:absolute;
-bottom:80px;
-left:50%;
+position:absolute; bottom:80px; left:50%;
 transform:translateX(-50%);
-width:calc(100% - 32px);
-max-width:360px;
-background:var(–card-hi);
-border:1px solid var(–border-mid);
-border-radius:var(–radius);
-padding:14px;
-box-shadow:0 8px 32px rgba(0,0,0,.5);
-z-index:20;
-display:none;
+width:calc(100% - 32px); max-width:360px;
+background:var(–card-hi); border:1px solid var(–border-mid);
+border-radius:var(–radius); padding:14px;
+box-shadow:0 8px 32px rgba(0,0,0,.6);
+z-index:20; display:none;
 animation:popIn .2s ease;
 }
 
@@ -236,30 +235,14 @@ to   { opacity:1; transform:translateX(-50%) translateY(0); }
 }
 
 .popup-close {
-position:absolute;
-top:10px; right:12px;
-font-size:16px;
-color:var(–ink-dim);
-cursor:pointer;
-padding:4px;
+position:absolute; top:10px; right:12px;
+font-size:15px; color:var(–ink-dim); cursor:pointer; padding:4px;
 }
 
-.popup-name {
-font-size:14px;
-font-weight:700;
-color:var(–ink);
-margin-bottom:10px;
-padding-right:20px;
-}
+.popup-name { font-size:14px; font-weight:700; color:var(–ink); margin-bottom:10px; padding-right:20px; }
 
-.popup-grid {
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:8px;
-margin-bottom:12px;
-}
+.popup-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
 
-.popup-item {}
 .popup-label { font-size:10px; color:var(–ink-dim); margin-bottom:2px; text-transform:uppercase; letter-spacing:.5px; }
 .popup-val { font-size:13px; font-weight:700; font-family:var(–font-mono); color:var(–ink); }
 .popup-val.acc { color:var(–accent); }
@@ -267,39 +250,25 @@ margin-bottom:12px;
 .popup-val.info { color:var(–info); }
 
 .popup-btn {
-width:100%;
-padding:10px;
-background:rgba(90,171,240,.12);
-border:1px solid rgba(90,171,240,.3);
-border-radius:var(–radius-sm);
-color:var(–info);
-font-size:12px;
-font-weight:600;
-font-family:var(–font-sans);
-cursor:pointer;
-text-align:center;
+width:100%; padding:10px;
+background:rgba(90,171,240,.12); border:1px solid rgba(90,171,240,.3);
+border-radius:var(–radius-sm); color:var(–info);
+font-size:12px; font-weight:600; font-family:var(–font-sans);
+cursor:pointer; text-align:center;
 }
 
 /* ── 하단 네비 ── */
 #bottom-nav {
-background:var(–surface);
-border-top:1px solid var(–border);
-display:flex;
-padding:10px 0;
+background:var(–surface); border-top:1px solid var(–border);
+display:flex; padding:10px 0;
 padding-bottom:max(env(safe-area-inset-bottom), 10px);
 flex-shrink:0;
 }
 
 .nav-item {
-flex:1;
-display:flex;
-flex-direction:column;
-align-items:center;
-gap:4px;
-cursor:pointer;
-color:var(–ink-dim);
-font-size:10px;
-font-weight:600;
+flex:1; display:flex; flex-direction:column;
+align-items:center; gap:4px; cursor:pointer;
+color:var(–ink-dim); font-size:10px; font-weight:600;
 transition:color .2s;
 }
 
@@ -317,11 +286,12 @@ transition:color .2s;
   </div>
 
   <div id="searchbar">
-    <div class="search-wrap">
-      <span style="color:var(--ink-dim);font-size:14px;">🔍</span>
-      <input type="text" placeholder="지역·단지명으로 검색" id="search-input">
+    <div class="search-wrap" id="search-wrap">
+      <span style="color:var(--ink-dim);font-size:14px;flex-shrink:0;">🔍</span>
+      <input type="text" placeholder="단지명·주소 검색" id="search-input" autocomplete="off">
+      <span class="search-clear" id="search-clear">✕</span>
     </div>
-    <button class="filter-btn">⚙ 필터</button>
+    <div id="search-results"></div>
   </div>
 
   <div id="map-container">
@@ -337,9 +307,16 @@ transition:color .2s;
   관심 단지 <span class="cnt" id="apt-count">0</span>개
 </div>
 
-<button id="myloc-btn">📍</button>
+<button id="myloc-btn" title="내 위치">
+  <svg class="loc-icon" viewBox="0 0 24 24" fill="none" stroke="var(--info)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="3"/>
+    <line x1="12" y1="2" x2="12" y2="6"/>
+    <line x1="12" y1="18" x2="12" y2="22"/>
+    <line x1="2" y1="12" x2="6" y2="12"/>
+    <line x1="18" y1="12" x2="22" y2="12"/>
+  </svg>
+</button>
 
-<!-- 마커 클릭 팝업 -->
 <div id="popup">
   <span class="popup-close" id="popup-close">✕</span>
   <div class="popup-name" id="popup-name"></div>
@@ -359,35 +336,12 @@ transition:color .2s;
 
 </div>
 
-<!-- 카카오 지도 SDK -->
-
 <script>
-// ── 임시 테스트 데이터 (나중에 Google Sheets JSON으로 교체) ──
+// ── 데이터 (나중에 Google Sheets JSON으로 교체) ──
 var APT_DATA = [
-  {
-    id:1, name:'래미안 어반파크', dong:'205동',
-    address:'서울 마포구 아현동',
-    lat:37.5547, lng:126.9572,
-    area:'84㎡', floor:'25F', year:2019,
-    price:'11.9억', jeonse:'8.0억', jeonseRate:67,
-    change1y:'+4.4%', tag:'wish', myScore:7.8,
-  },
-  {
-    id:2, name:'공덕 SK뷰', dong:'101동',
-    address:'서울 마포구 공덕동',
-    lat:37.5445, lng:126.9512,
-    area:'59㎡', floor:'12F', year:2016,
-    price:'8.2억', jeonse:'5.5억', jeonseRate:67,
-    change1y:'+2.1%', tag:'watching', myScore:6.5,
-  },
-  {
-    id:3, name:'마포자이', dong:'301동',
-    address:'서울 마포구 도화동',
-    lat:37.5402, lng:126.9489,
-    area:'114㎡', floor:'8F', year:2004,
-    price:'13.5억', jeonse:'7.8억', jeonseRate:58,
-    change1y:'+1.8%', tag:'visited', myScore:8.2,
-  },
+  { id:1, name:'래미안 어반파크', dong:'205동', address:'서울 마포구 아현동', lat:37.5547, lng:126.9572, area:'84㎡', floor:'25F', year:2019, price:'11.9억', jeonse:'8.0억', jeonseRate:67, change1y:'+4.4%', tag:'wish', myScore:7.8 },
+  { id:2, name:'공덕 SK뷰', dong:'101동', address:'서울 마포구 공덕동', lat:37.5445, lng:126.9512, area:'59㎡', floor:'12F', year:2016, price:'8.2억', jeonse:'5.5억', jeonseRate:67, change1y:'+2.1%', tag:'watching', myScore:6.5 },
+  { id:3, name:'마포자이', dong:'301동', address:'서울 마포구 도화동', lat:37.5402, lng:126.9489, area:'114㎡', floor:'8F', year:2004, price:'13.5억', jeonse:'7.8억', jeonseRate:58, change1y:'+1.8%', tag:'visited', myScore:8.2 },
 ];
 
 var COLORS = {
@@ -398,79 +352,156 @@ var COLORS = {
 
 var map;
 var selectedApt = null;
+var overlays = [];
 
+// ── 지도 초기화 ──
 function initMap() {
-  var container = document.getElementById('map');
-  map = new kakao.maps.Map(container, {
+  map = new kakao.maps.Map(document.getElementById('map'), {
     center: new kakao.maps.LatLng(37.548, 126.953),
     level: 4,
   });
 
-  // 로딩 제거
   var loading = document.getElementById('map-loading');
   loading.classList.add('hidden');
   setTimeout(function(){ loading.remove(); }, 500);
 
   addMarkers();
   document.getElementById('apt-count').textContent = APT_DATA.length;
+
+  // 지도 클릭시 팝업 닫기
+  kakao.maps.event.addListener(map, 'click', function() {
+    closePopup();
+  });
 }
 
+// ── 마커 생성 ──
 function addMarkers() {
+  overlays = [];
   APT_DATA.forEach(function(apt) {
     var c = COLORS[apt.tag] || COLORS.watching;
-    var html = '<div style="position:relative;cursor:pointer;transform:translate(-50%,-100%);">'
-      + '<div style="background:' + c.bg + ';color:' + c.text + ';font-family:\'JetBrains Mono\',monospace;font-size:11px;font-weight:700;padding:5px 9px;border-radius:8px 8px 8px 0;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,.4);border:1px solid ' + c.border + ';">' + apt.price + '</div>'
+    // apt-marker 클래스로 감싸서 CSS 재반전 적용
+    var html = '<div class="apt-marker" style="position:relative;cursor:pointer;transform:translate(-50%,-100%);">'
+      + '<div style="background:' + c.bg + ';color:' + c.text + ';font-family:\'JetBrains Mono\',monospace;font-size:11px;font-weight:700;padding:5px 9px;border-radius:8px 8px 8px 0;white-space:nowrap;box-shadow:0 3px 12px rgba(0,0,0,.5);border:1.5px solid ' + c.border + ';">' + apt.price + '</div>'
       + '<div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid ' + c.bg + ';margin-left:4px;"></div>'
       + '</div>';
 
     var overlay = new kakao.maps.CustomOverlay({
       position: new kakao.maps.LatLng(apt.lat, apt.lng),
-      content: html,
-      yAnchor: 1,
-      zIndex: 3,
+      content: html, yAnchor: 1, zIndex: 3,
     });
 
     overlay.setMap(map);
 
-    overlay.getContent().addEventListener('click', function() {
-      showPopup(apt);
-    });
+    (function(a) {
+      overlay.getContent().addEventListener('click', function(e) {
+        e.stopPropagation();
+        showPopup(a);
+      });
+    })(apt);
+
+    overlays.push({ overlay: overlay, apt: apt });
   });
 }
 
+// ── 팝업 ──
 function showPopup(apt) {
   selectedApt = apt;
   document.getElementById('popup-name').textContent = '🏢 ' + apt.name + ' ' + apt.dong;
   document.getElementById('popup-grid').innerHTML =
-    item('실거래가', apt.price, 'acc') +
-    item('전세가', apt.jeonse, 'info') +
-    item('전세가율', apt.jeonseRate + '%', 'pos') +
-    item('면적/층', apt.area + ' ' + apt.floor, '') +
-    item('1년변동', apt.change1y, 'pos') +
-    item('내점수', apt.myScore + '점', '');
+    pItem('실거래가', apt.price, 'acc') +
+    pItem('전세가', apt.jeonse, 'info') +
+    pItem('전세가율', apt.jeonseRate + '%', 'pos') +
+    pItem('면적/층', apt.area + ' ' + apt.floor, '') +
+    pItem('1년변동', apt.change1y, 'pos') +
+    pItem('내점수', apt.myScore + '점', '');
   document.getElementById('popup').classList.add('show');
 }
 
-function item(label, val, cls) {
-  return '<div class="popup-item">'
-    + '<div class="popup-label">' + label + '</div>'
-    + '<div class="popup-val ' + cls + '">' + val + '</div>'
-    + '</div>';
+function closePopup() {
+  document.getElementById('popup').classList.remove('show');
 }
 
-// 팝업 닫기
-document.getElementById('popup-close').addEventListener('click', function() {
-  document.getElementById('popup').classList.remove('show');
-});
+function pItem(label, val, cls) {
+  return '<div><div class="popup-label">' + label + '</div><div class="popup-val ' + cls + '">' + val + '</div></div>';
+}
 
-// 상세 보기 버튼 (STEP 3에서 연결)
+document.getElementById('popup-close').addEventListener('click', closePopup);
+
 document.getElementById('popup-detail-btn').addEventListener('click', function() {
-  if (selectedApt) {
-    alert(selectedApt.name + '\n\n👉 STEP 3에서 상세 데이터 시트 연결 예정!');
-  }
+  if (selectedApt) alert(selectedApt.name + '\n\n👉 STEP 3에서 상세 데이터 시트 연결 예정!');
 });
 
-// 내 위치
+// ── 검색 ──
+var searchInput = document.getElementById('search-input');
+var searchWrap  = document.getElementById('search-wrap');
+var searchClear = document.getElementById('search-clear');
+var searchResults = document.getElementById('search-results');
+
+searchInput.addEventListener('focus', function() {
+  searchWrap.classList.add('focused');
+  if (searchInput.value.trim()) renderResults(searchInput.value.trim());
+});
+
+searchInput.addEventListener('input', function() {
+  var q = searchInput.value.trim();
+  searchClear.style.display = q ? 'block' : 'none';
+  if (q) renderResults(q);
+  else hideResults();
+});
+
+searchInput.addEventListener('blur', function() {
+  searchWrap.classList.remove('focused');
+  setTimeout(hideResults, 200);
+});
+
+searchClear.addEventListener('click', function() {
+  searchInput.value = '';
+  searchClear.style.display = 'none';
+  hideResults();
+  searchInput.focus();
+});
+
+function renderResults(q) {
+  var lower = q.toLowerCase();
+  var filtered = APT_DATA.filter(function(a) {
+    return a.name.toLowerCase().includes(lower) || a.address.toLowerCase().includes(lower) || a.dong.includes(q);
+  });
+
+  if (filtered.length === 0) {
+    searchResults.innerHTML = '<div class="search-empty">검색 결과가 없어요</div>';
+  } else {
+    searchResults.innerHTML = filtered.map(function(a) {
+      return '<div class="search-result-item" data-id="' + a.id + '">'
+        + '<div class="sri-left"><div class="sri-name">' + a.name + ' ' + a.dong + '</div>'
+        + '<div class="sri-addr">' + a.address + '</div></div>'
+        + '<div class="sri-price">' + a.price + '</div>'
+        + '</div>';
+    }).join('');
+
+    searchResults.querySelectorAll('.search-result-item').forEach(function(el) {
+      el.addEventListener('click', function() {
+        var id = parseInt(el.getAttribute('data-id'));
+        var apt = APT_DATA.find(function(a){ return a.id === id; });
+        if (apt && map) {
+          map.setCenter(new kakao.maps.LatLng(apt.lat, apt.lng));
+          map.setLevel(3);
+          showPopup(apt);
+          searchInput.value = apt.name;
+          searchClear.style.display = 'block';
+          hideResults();
+        }
+      });
+    });
+  }
+
+  searchResults.style.display = 'block';
+}
+
+function hideResults() {
+  searchResults.style.display = 'none';
+}
+
+// ── 내 위치 ──
 document.getElementById('myloc-btn').addEventListener('click', function() {
   if (!navigator.geolocation) return;
   navigator.geolocation.getCurrentPosition(function(pos) {
@@ -479,7 +510,7 @@ document.getElementById('myloc-btn').addEventListener('click', function() {
   });
 });
 
-// 탭 네비
+// ── 탭 네비 ──
 document.querySelectorAll('.nav-item').forEach(function(item) {
   item.addEventListener('click', function() {
     document.querySelectorAll('.nav-item').forEach(function(i){ i.classList.remove('active'); });
@@ -487,7 +518,7 @@ document.querySelectorAll('.nav-item').forEach(function(item) {
   });
 });
 
-// 카카오 SDK 동적 로드
+// ── SDK 로드 ──
 var s = document.createElement('script');
 s.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=c39d5438e2baf9e5a326fb7d5771faa4&autoload=false';
 s.onload = function() { kakao.maps.load(initMap); };
