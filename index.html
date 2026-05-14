@@ -4,75 +4,494 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>부동산 지도 DEBUG</title>
+<title>부동산 지도</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:#0a0a09; color:#f0ede8; font-family:sans-serif; }
-  #debug {
-    position:fixed; bottom:0; left:0; right:0;
-    background:#1c1b19; border-top:2px solid #e8b800;
-    padding:14px 16px; font-size:13px; z-index:9999;
-    line-height:2; max-height:50vh; overflow-y:auto;
-  }
-  .ok   { color:#00c98a; }
-  .err  { color:#f04d62; font-weight:bold; }
-  .warn { color:#e8b800; }
-  #map  { position:fixed; top:0; left:0; right:0; bottom:0; z-index:1; }
-</style>
-</head>
-<body>
-<div id="map"></div>
-<div id="debug" id="debug">
-  <span class="warn">① JS 실행 시작</span>
-</div>
-
-<script>
-var db = document.getElementById('debug');
-function log(msg, type) {
-  db.innerHTML += '<br><span class="'+(type||'warn')+'">'+msg+'</span>';
-  db.scrollTop = db.scrollHeight;
+:root {
+  --bg:        #0a0a09;
+  --surface:   #0f0f0e;
+  --card:      #161513;
+  --card-hi:   #1c1b19;
+  --border:    #2a2926;
+  --border-mid:#353330;
+  --ink:       #f0ede8;
+  --ink-mid:   #9a9690;
+  --ink-dim:   #565250;
+  --pos:       #00c98a;
+  --neg:       #f04d62;
+  --accent:    #e8b800;
+  --info:      #5aabf0;
+  --purple:    #b8a8f0;
+  --radius:    14px;
+  --radius-sm: 8px;
+  --pad:       16px;
+  --gap:       10px;
+  --font-sans: 'Pretendard', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
 }
 
-// 에러 캐치
-window.onerror = function(msg, src, line) {
-  log('❌ JS오류: '+msg+' / line:'+line, 'err');
-  return true;
+- { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+html, body {
+width:100%; height:100%;
+background:var(–bg);
+font-family:var(–font-sans);
+color:var(–ink);
+overflow:hidden;
+}
+
+#app {
+display:flex;
+flex-direction:column;
+height:100vh;
+height:100dvh;
+}
+
+/* ── 헤더 ── */
+#header {
+background:var(–surface);
+border-bottom:1px solid var(–border);
+padding:12px var(–pad);
+display:flex;
+align-items:center;
+gap:10px;
+flex-shrink:0;
+z-index:100;
+}
+
+.header-title {
+font-size:15px;
+font-weight:700;
+color:var(–ink);
+flex:1;
+}
+
+.header-badge {
+font-family:var(–font-mono);
+font-size:10px;
+font-weight:600;
+padding:3px 8px;
+border-radius:20px;
+background:rgba(0,201,138,.12);
+color:var(–pos);
+border:1px solid rgba(0,201,138,.25);
+}
+
+/* ── 검색바 ── */
+#searchbar {
+padding:10px var(–pad);
+background:var(–surface);
+border-bottom:1px solid var(–border);
+display:flex;
+gap:8px;
+flex-shrink:0;
+}
+
+.search-wrap {
+flex:1;
+background:var(–card);
+border:1px solid var(–border-mid);
+border-radius:var(–radius-sm);
+display:flex;
+align-items:center;
+padding:8px 12px;
+gap:8px;
+}
+
+.search-wrap input {
+background:transparent;
+border:none;
+outline:none;
+font-family:var(–font-sans);
+font-size:13px;
+color:var(–ink);
+width:100%;
+}
+
+.search-wrap input::placeholder { color:var(–ink-dim); }
+
+.filter-btn {
+background:var(–card);
+border:1px solid var(–border-mid);
+border-radius:var(–radius-sm);
+padding:0 14px;
+font-size:12px;
+font-weight:600;
+color:var(–ink-mid);
+cursor:pointer;
+white-space:nowrap;
+font-family:var(–font-sans);
+}
+
+/* ── 지도 ── */
+#map-container {
+flex:1;
+position:relative;
+overflow:hidden;
+}
+
+#map { width:100%; height:100%; }
+
+/* ── 로딩 ── */
+#map-loading {
+position:absolute;
+inset:0;
+background:var(–bg);
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+gap:14px;
+z-index:50;
+transition:opacity .4s;
+}
+
+#map-loading.hidden { opacity:0; pointer-events:none; }
+
+.spinner {
+width:36px; height:36px;
+border:3px solid var(–border-mid);
+border-top-color:var(–accent);
+border-radius:50%;
+animation:spin .8s linear infinite;
+}
+
+@keyframes spin { to { transform:rotate(360deg); } }
+
+.loading-text {
+font-size:13px;
+color:var(–ink-dim);
+font-family:var(–font-mono);
+}
+
+/* ── 카운터 배지 ── */
+#count-badge {
+position:absolute;
+top:14px;
+right:16px;
+background:var(–card-hi);
+border:1px solid var(–border-mid);
+border-radius:20px;
+padding:6px 12px;
+display:flex;
+align-items:center;
+gap:6px;
+font-size:11px;
+color:var(–ink-mid);
+z-index:10;
+backdrop-filter:blur(8px);
+}
+
+#count-badge .cnt {
+font-family:var(–font-mono);
+font-weight:700;
+color:var(–accent);
+}
+
+/* ── 내 위치 버튼 ── */
+#myloc-btn {
+position:absolute;
+bottom:20px;
+right:16px;
+width:44px; height:44px;
+background:var(–card-hi);
+border:1px solid var(–border-mid);
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:20px;
+cursor:pointer;
+box-shadow:0 4px 16px rgba(0,0,0,.4);
+z-index:10;
+transition:border-color .2s, transform .15s;
+}
+
+#myloc-btn:active { transform:scale(.92); }
+
+/* ── 팝업 ── */
+#popup {
+position:absolute;
+bottom:80px;
+left:50%;
+transform:translateX(-50%);
+width:calc(100% - 32px);
+max-width:360px;
+background:var(–card-hi);
+border:1px solid var(–border-mid);
+border-radius:var(–radius);
+padding:14px;
+box-shadow:0 8px 32px rgba(0,0,0,.5);
+z-index:20;
+display:none;
+animation:popIn .2s ease;
+}
+
+#popup.show { display:block; }
+
+@keyframes popIn {
+from { opacity:0; transform:translateX(-50%) translateY(8px); }
+to   { opacity:1; transform:translateX(-50%) translateY(0); }
+}
+
+.popup-close {
+position:absolute;
+top:10px; right:12px;
+font-size:16px;
+color:var(–ink-dim);
+cursor:pointer;
+padding:4px;
+}
+
+.popup-name {
+font-size:14px;
+font-weight:700;
+color:var(–ink);
+margin-bottom:10px;
+padding-right:20px;
+}
+
+.popup-grid {
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:8px;
+margin-bottom:12px;
+}
+
+.popup-item {}
+.popup-label { font-size:10px; color:var(–ink-dim); margin-bottom:2px; text-transform:uppercase; letter-spacing:.5px; }
+.popup-val { font-size:13px; font-weight:700; font-family:var(–font-mono); color:var(–ink); }
+.popup-val.acc { color:var(–accent); }
+.popup-val.pos { color:var(–pos); }
+.popup-val.info { color:var(–info); }
+
+.popup-btn {
+width:100%;
+padding:10px;
+background:rgba(90,171,240,.12);
+border:1px solid rgba(90,171,240,.3);
+border-radius:var(–radius-sm);
+color:var(–info);
+font-size:12px;
+font-weight:600;
+font-family:var(–font-sans);
+cursor:pointer;
+text-align:center;
+}
+
+/* ── 하단 네비 ── */
+#bottom-nav {
+background:var(–surface);
+border-top:1px solid var(–border);
+display:flex;
+padding:10px 0;
+padding-bottom:max(env(safe-area-inset-bottom), 10px);
+flex-shrink:0;
+}
+
+.nav-item {
+flex:1;
+display:flex;
+flex-direction:column;
+align-items:center;
+gap:4px;
+cursor:pointer;
+color:var(–ink-dim);
+font-size:10px;
+font-weight:600;
+transition:color .2s;
+}
+
+.nav-item.active { color:var(–info); }
+.nav-icon { font-size:18px; }
+</style>
+
+</head>
+<body>
+<div id="app">
+
+  <div id="header">
+    <div class="header-title">🏢 부동산 지도</div>
+    <div class="header-badge">LIVE</div>
+  </div>
+
+  <div id="searchbar">
+    <div class="search-wrap">
+      <span style="color:var(--ink-dim);font-size:14px;">🔍</span>
+      <input type="text" placeholder="지역·단지명으로 검색" id="search-input">
+    </div>
+    <button class="filter-btn">⚙ 필터</button>
+  </div>
+
+  <div id="map-container">
+    <div id="map"></div>
+
+```
+<div id="map-loading">
+  <div class="spinner"></div>
+  <span class="loading-text">지도 불러오는 중...</span>
+</div>
+
+<div id="count-badge">
+  관심 단지 <span class="cnt" id="apt-count">0</span>개
+</div>
+
+<button id="myloc-btn">📍</button>
+
+<!-- 마커 클릭 팝업 -->
+<div id="popup">
+  <span class="popup-close" id="popup-close">✕</span>
+  <div class="popup-name" id="popup-name"></div>
+  <div class="popup-grid" id="popup-grid"></div>
+  <div class="popup-btn" id="popup-detail-btn">상세 내 데이터 보기 →</div>
+</div>
+```
+
+  </div>
+
+  <div id="bottom-nav">
+    <div class="nav-item active"><span class="nav-icon">🗺</span>지도</div>
+    <div class="nav-item"><span class="nav-icon">📋</span>목록</div>
+    <div class="nav-item"><span class="nav-icon">⭐</span>관심</div>
+    <div class="nav-item"><span class="nav-icon">📊</span>비교</div>
+  </div>
+
+</div>
+
+<!-- 카카오 지도 SDK -->
+
+<script>
+// ── 임시 테스트 데이터 (나중에 Google Sheets JSON으로 교체) ──
+var APT_DATA = [
+  {
+    id:1, name:'래미안 어반파크', dong:'205동',
+    address:'서울 마포구 아현동',
+    lat:37.5547, lng:126.9572,
+    area:'84㎡', floor:'25F', year:2019,
+    price:'11.9억', jeonse:'8.0억', jeonseRate:67,
+    change1y:'+4.4%', tag:'wish', myScore:7.8,
+  },
+  {
+    id:2, name:'공덕 SK뷰', dong:'101동',
+    address:'서울 마포구 공덕동',
+    lat:37.5445, lng:126.9512,
+    area:'59㎡', floor:'12F', year:2016,
+    price:'8.2억', jeonse:'5.5억', jeonseRate:67,
+    change1y:'+2.1%', tag:'watching', myScore:6.5,
+  },
+  {
+    id:3, name:'마포자이', dong:'301동',
+    address:'서울 마포구 도화동',
+    lat:37.5402, lng:126.9489,
+    area:'114㎡', floor:'8F', year:2004,
+    price:'13.5억', jeonse:'7.8억', jeonseRate:58,
+    change1y:'+1.8%', tag:'visited', myScore:8.2,
+  },
+];
+
+var COLORS = {
+  wish:    { bg:'#5aabf0', text:'#fff', border:'#3a8bd0' },
+  watching:{ bg:'#e8b800', text:'#000', border:'#c09800' },
+  visited: { bg:'#00c98a', text:'#000', border:'#009a6a' },
 };
 
-log('② script 태그 실행됨', 'ok');
+var map;
+var selectedApt = null;
 
-// 카카오 SDK를 동적으로 로드
-var script = document.createElement('script');
-script.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=c39d5438e2baf9e5a326fb7d5771faa4&autoload=false';
-
-script.onload = function() {
-  log('③ SDK 스크립트 로드 성공', 'ok');
-  if (typeof kakao === 'undefined') {
-    log('❌ 그런데 kakao 객체 없음', 'err');
-    return;
-  }
-  log('④ kakao 객체 확인됨', 'ok');
-  kakao.maps.load(function() {
-    log('⑤ kakao.maps.load 콜백 실행!', 'ok');
-    try {
-      var map = new kakao.maps.Map(document.getElementById('map'), {
-        center: new kakao.maps.LatLng(37.548, 126.953),
-        level: 4
-      });
-      log('🎉 지도 완성! 캡처해서 보내줘', 'ok');
-    } catch(e) {
-      log('❌ 지도생성 실패: '+e.message, 'err');
-    }
+function initMap() {
+  var container = document.getElementById('map');
+  map = new kakao.maps.Map(container, {
+    center: new kakao.maps.LatLng(37.548, 126.953),
+    level: 4,
   });
-};
 
-script.onerror = function(e) {
-  log('❌ SDK 스크립트 로드 자체가 실패했어!', 'err');
-  log('💡 네트워크 차단이거나 앱키 문제일 수 있어', 'warn');
-};
+  // 로딩 제거
+  var loading = document.getElementById('map-loading');
+  loading.classList.add('hidden');
+  setTimeout(function(){ loading.remove(); }, 500);
 
-log('② SDK 스크립트 삽입 시도중...', 'warn');
-document.head.appendChild(script);
+  addMarkers();
+  document.getElementById('apt-count').textContent = APT_DATA.length;
+}
+
+function addMarkers() {
+  APT_DATA.forEach(function(apt) {
+    var c = COLORS[apt.tag] || COLORS.watching;
+    var html = '<div style="position:relative;cursor:pointer;transform:translate(-50%,-100%);">'
+      + '<div style="background:' + c.bg + ';color:' + c.text + ';font-family:\'JetBrains Mono\',monospace;font-size:11px;font-weight:700;padding:5px 9px;border-radius:8px 8px 8px 0;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,.4);border:1px solid ' + c.border + ';">' + apt.price + '</div>'
+      + '<div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid ' + c.bg + ';margin-left:4px;"></div>'
+      + '</div>';
+
+    var overlay = new kakao.maps.CustomOverlay({
+      position: new kakao.maps.LatLng(apt.lat, apt.lng),
+      content: html,
+      yAnchor: 1,
+      zIndex: 3,
+    });
+
+    overlay.setMap(map);
+
+    overlay.getContent().addEventListener('click', function() {
+      showPopup(apt);
+    });
+  });
+}
+
+function showPopup(apt) {
+  selectedApt = apt;
+  document.getElementById('popup-name').textContent = '🏢 ' + apt.name + ' ' + apt.dong;
+  document.getElementById('popup-grid').innerHTML =
+    item('실거래가', apt.price, 'acc') +
+    item('전세가', apt.jeonse, 'info') +
+    item('전세가율', apt.jeonseRate + '%', 'pos') +
+    item('면적/층', apt.area + ' ' + apt.floor, '') +
+    item('1년변동', apt.change1y, 'pos') +
+    item('내점수', apt.myScore + '점', '');
+  document.getElementById('popup').classList.add('show');
+}
+
+function item(label, val, cls) {
+  return '<div class="popup-item">'
+    + '<div class="popup-label">' + label + '</div>'
+    + '<div class="popup-val ' + cls + '">' + val + '</div>'
+    + '</div>';
+}
+
+// 팝업 닫기
+document.getElementById('popup-close').addEventListener('click', function() {
+  document.getElementById('popup').classList.remove('show');
+});
+
+// 상세 보기 버튼 (STEP 3에서 연결)
+document.getElementById('popup-detail-btn').addEventListener('click', function() {
+  if (selectedApt) {
+    alert(selectedApt.name + '\n\n👉 STEP 3에서 상세 데이터 시트 연결 예정!');
+  }
+});
+
+// 내 위치
+document.getElementById('myloc-btn').addEventListener('click', function() {
+  if (!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(function(pos) {
+    map.setCenter(new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude));
+    map.setLevel(3);
+  });
+});
+
+// 탭 네비
+document.querySelectorAll('.nav-item').forEach(function(item) {
+  item.addEventListener('click', function() {
+    document.querySelectorAll('.nav-item').forEach(function(i){ i.classList.remove('active'); });
+    item.classList.add('active');
+  });
+});
+
+// 카카오 SDK 동적 로드
+var s = document.createElement('script');
+s.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=c39d5438e2baf9e5a326fb7d5771faa4&autoload=false';
+s.onload = function() { kakao.maps.load(initMap); };
+document.head.appendChild(s);
 </script>
 
 </body>
