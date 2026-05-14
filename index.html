@@ -5,59 +5,74 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>부동산 지도 DEBUG</title>
-<script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=c39d5438e2baf9e5a326fb7d5771faa4&autoload=false"></script>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   body { background:#0a0a09; color:#f0ede8; font-family:sans-serif; }
   #debug {
-    position:fixed; top:0; left:0; right:0;
-    background:#1c1b19; border-bottom:1px solid #353330;
-    padding:14px 16px; font-size:13px; z-index:9999; line-height:1.8;
+    position:fixed; bottom:0; left:0; right:0;
+    background:#1c1b19; border-top:2px solid #e8b800;
+    padding:14px 16px; font-size:13px; z-index:9999;
+    line-height:2; max-height:50vh; overflow-y:auto;
   }
   .ok   { color:#00c98a; }
-  .err  { color:#f04d62; }
+  .err  { color:#f04d62; font-weight:bold; }
   .warn { color:#e8b800; }
   #map  { position:fixed; top:0; left:0; right:0; bottom:0; z-index:1; }
 </style>
 </head>
 <body>
 <div id="map"></div>
-<div id="debug"><span id="log">🔍 로딩중...</span></div>
+<div id="debug" id="debug">
+  <span class="warn">① JS 실행 시작</span>
+</div>
+
 <script>
-var logEl = document.getElementById('log');
+var db = document.getElementById('debug');
 function log(msg, type) {
-  logEl.innerHTML += '<br><span class="'+(type||'')+'">'+msg+'</span>';
+  db.innerHTML += '<br><span class="'+(type||'warn')+'">'+msg+'</span>';
+  db.scrollTop = db.scrollHeight;
 }
 
+// 에러 캐치
 window.onerror = function(msg, src, line) {
-log(‘❌ 오류: ‘+msg+’ (line ‘+line+’)’, ‘err’);
+  log('❌ JS오류: '+msg+' / line:'+line, 'err');
+  return true;
 };
 
-if (typeof kakao === ‘undefined’) {
-log(‘❌ kakao 객체 없음 — SDK 로드 실패’, ‘err’);
-log(‘💡 JS키 또는 도메인 등록 확인 필요’, ‘warn’);
-} else {
-log(‘✅ kakao SDK 로드 성공’, ‘ok’);
-try {
-kakao.maps.load(function() {
-log(‘✅ kakao.maps.load() 콜백 실행’, ‘ok’);
-try {
-var map = new kakao.maps.Map(document.getElementById(‘map’), {
-center: new kakao.maps.LatLng(37.548, 126.953),
-level: 4
-});
-log(‘🎉 지도 생성 성공! 이 텍스트 캡처해서 보내줘’, ‘ok’);
-document.getElementById(‘debug’).style.top = ‘auto’;
-document.getElementById(‘debug’).style.bottom = ‘0’;
-} catch(e) {
-log(’❌ 지도 생성 실패: ’+e.message, ‘err’);
-}
-});
-log(‘⏳ 콜백 대기중…’, ‘warn’);
-} catch(e) {
-log(’❌ load() 오류: ’+e.message, ‘err’);
-}
-}
+log('② script 태그 실행됨', 'ok');
+
+// 카카오 SDK를 동적으로 로드
+var script = document.createElement('script');
+script.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=c39d5438e2baf9e5a326fb7d5771faa4&autoload=false';
+
+script.onload = function() {
+  log('③ SDK 스크립트 로드 성공', 'ok');
+  if (typeof kakao === 'undefined') {
+    log('❌ 그런데 kakao 객체 없음', 'err');
+    return;
+  }
+  log('④ kakao 객체 확인됨', 'ok');
+  kakao.maps.load(function() {
+    log('⑤ kakao.maps.load 콜백 실행!', 'ok');
+    try {
+      var map = new kakao.maps.Map(document.getElementById('map'), {
+        center: new kakao.maps.LatLng(37.548, 126.953),
+        level: 4
+      });
+      log('🎉 지도 완성! 캡처해서 보내줘', 'ok');
+    } catch(e) {
+      log('❌ 지도생성 실패: '+e.message, 'err');
+    }
+  });
+};
+
+script.onerror = function(e) {
+  log('❌ SDK 스크립트 로드 자체가 실패했어!', 'err');
+  log('💡 네트워크 차단이거나 앱키 문제일 수 있어', 'warn');
+};
+
+log('② SDK 스크립트 삽입 시도중...', 'warn');
+document.head.appendChild(script);
 </script>
 
 </body>
