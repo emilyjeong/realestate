@@ -40,6 +40,7 @@ html, body {
 
 #app { display:flex; flex-direction:column; height:100vh; height:100dvh; }
 
+/* ── 헤더 ── */
 #header {
   background:var(--surface) !important;
   border-bottom:1px solid var(--border);
@@ -50,12 +51,20 @@ html, body {
   flex-shrink:0; z-index:100;
 }
 .header-title { font-size:22px; font-weight:700; color:var(--ink); flex:1; }
-.header-badge {
-  font-family:var(--font-mono); font-size:10px; font-weight:600;
-  padding:3px 8px; border-radius:20px;
-  background:rgba(0,201,138,.12); color:var(--pos); border:1px solid rgba(0,201,138,.25);
+.home-btn {
+  font-size:20px;
+  text-decoration:none;
+  width:36px; height:36px;
+  display:flex; align-items:center; justify-content:center;
+  border-radius:50%;
+  background:var(--card);
+  border:1px solid var(--border-mid);
+  transition:background .2s, transform .15s;
+  flex-shrink:0;
 }
+.home-btn:active { transform:scale(.92); background:var(--card-hi); }
 
+/* ── 검색 영역 ── */
 #search-area {
   background:var(--surface) !important;
   border-bottom:1px solid var(--border);
@@ -80,12 +89,18 @@ html, body {
 .search-wrap input::placeholder { color:var(--ink-dim); }
 .search-clear { color:var(--ink-dim); font-size:14px; cursor:pointer; padding:2px 4px; display:none; flex-shrink:0; }
 
+/* 검색 결과 */
 #search-results {
   display:none;
   border-top:1px solid var(--border);
   max-height:260px; overflow-y:auto;
 }
-.sri { padding:12px var(--pad); border-bottom:1px solid var(--border); cursor:pointer; transition:background .15s; }
+.sri {
+  padding:12px var(--pad);
+  border-bottom:1px solid var(--border);
+  cursor:pointer;
+  transition:background .15s;
+}
 .sri:last-child { border-bottom:none; }
 .sri:active { background:var(--card); }
 .sri-name { font-size:13px; font-weight:600; color:var(--ink); }
@@ -93,9 +108,11 @@ html, body {
 .search-empty { padding:16px var(--pad); font-size:13px; color:var(--ink-dim); text-align:center; }
 .search-loading { padding:16px var(--pad); font-size:13px; color:var(--ink-dim); text-align:center; font-family:var(--font-mono); }
 
+/* ── 지도 ── */
 #map-container { flex:1; position:relative; z-index:1; }
 #map { width:100%; height:100%; }
 
+/* ── 로딩 ── */
 #map-loading {
   position:absolute; inset:0; background:var(--bg);
   display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -112,7 +129,7 @@ html, body {
 
   <div id="header">
     <div class="header-title">부동산 지도</div>
-    <div class="header-badge">LIVE</div>
+    <a href="https://emilyjeong.github.io/home" class="home-btn" aria-label="홈으로 가기">🏠</a>
   </div>
 
   <div id="search-area">
@@ -144,16 +161,22 @@ function initMap() {
     center: new kakao.maps.LatLng(37.548, 126.953),
     level: 5,
   });
+
+  // 카카오 Places 서비스 초기화
   ps = new kakao.maps.services.Places();
+
   var loading = document.getElementById('map-loading');
   loading.classList.add('hidden');
   setTimeout(function(){ loading.remove(); }, 500);
+
+  // 지도 클릭 시 결과 닫기
   kakao.maps.event.addListener(map, 'click', function() {
     hideResults();
     document.getElementById('search-input').blur();
   });
 }
 
+// ── 검색 ──
 var sinput  = document.getElementById('search-input');
 var swrap   = document.getElementById('search-wrap');
 var sclear  = document.getElementById('search-clear');
@@ -162,46 +185,64 @@ var searchTimer = null;
 
 sinput.addEventListener('focus', function() { swrap.classList.add('focused'); });
 sinput.addEventListener('blur',  function() { swrap.classList.remove('focused'); setTimeout(hideResults, 200); });
+
 sinput.addEventListener('input', function() {
   var q = sinput.value.trim();
   sclear.style.display = q ? 'block' : 'none';
   clearTimeout(searchTimer);
   if (!q) { hideResults(); return; }
+  // 타이핑 멈추고 300ms 후 검색
   searchTimer = setTimeout(function() { doSearch(q); }, 300);
 });
+
 sclear.addEventListener('click', function() {
-  sinput.value = ''; sclear.style.display = 'none'; hideResults(); sinput.focus();
+  sinput.value = '';
+  sclear.style.display = 'none';
+  hideResults();
+  sinput.focus();
 });
 
 function doSearch(q) {
   if (!ps) return;
   sresult.innerHTML = '<div class="search-loading">검색 중...</div>';
   sresult.style.display = 'block';
+
   ps.keywordSearch(q, function(data, status) {
-    if (status === kakao.maps.services.Status.OK) renderResults(data);
-    else if (status === kakao.maps.services.Status.ZERO_RESULT) sresult.innerHTML = '<div class="search-empty">검색 결과가 없어요</div>';
-    else sresult.innerHTML = '<div class="search-empty">검색 중 오류가 발생했어요</div>';
+    if (status === kakao.maps.services.Status.OK) {
+      renderResults(data);
+    } else if (status === kakao.maps.services.Status.ZERO_RESULT) {
+      sresult.innerHTML = '<div class="search-empty">검색 결과가 없어요</div>';
+    } else {
+      sresult.innerHTML = '<div class="search-empty">검색 중 오류가 발생했어요</div>';
+    }
   }, { size: 10 });
 }
 
 function renderResults(data) {
   sresult.innerHTML = data.map(function(p, i) {
-    return '<div class="sri" data-idx="' + i + '"><div class="sri-name">' + p.place_name + '</div><div class="sri-addr">' + (p.road_address_name || p.address_name) + '</div></div>';
+    return '<div class="sri" data-idx="' + i + '">'
+      + '<div class="sri-name">' + p.place_name + '</div>'
+      + '<div class="sri-addr">' + (p.road_address_name || p.address_name) + '</div>'
+      + '</div>';
   }).join('');
+
   sresult.querySelectorAll('.sri').forEach(function(el, i) {
     el.addEventListener('click', function() {
       var p = data[i];
-      map.setCenter(new kakao.maps.LatLng(p.y, p.x));
+      var latlng = new kakao.maps.LatLng(p.y, p.x);
+      map.setCenter(latlng);
       map.setLevel(3);
       sinput.value = p.place_name;
       sclear.style.display = 'block';
-      hideResults(); sinput.blur();
+      hideResults();
+      sinput.blur();
     });
   });
 }
 
 function hideResults() { sresult.style.display = 'none'; }
 
+// ── SDK 로드 (services 라이브러리 포함) ──
 var s = document.createElement('script');
 s.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=c39d5438e2baf9e5a326fb7d5771faa4&autoload=false&libraries=services';
 s.onload = function() { kakao.maps.load(initMap); };
