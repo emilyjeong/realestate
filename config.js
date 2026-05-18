@@ -5,5 +5,5 @@
 // Google Apps Script → 배포 → URL 복사 후 붙여넣기
 
 const CONFIG = {
-  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbz_1sMeoCO1iuMXs4UJZeZsgifR0qWEU0IPAMFT-O6jI_686x5wF2j9Rd3VxEc_sqPdEA/exec',
+  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbybVombj1cZKYDuO7rD8XRHjN_hkYt_m8jdmcUz5GWXznhX-ORrY0TTzsqxXBMTeLCSww/exec',
 };
