@@ -111,11 +111,10 @@ html,body{width:100%;height:100%;background:var(--bg)!important;font-family:var(
 var map, aptData = [], selectedApt = null;
 
 var TAG_CONFIG = {
-  '추천': { color:'#00c98a', icon:'ti-star' },
-  '주시': { color:'#e8b800', icon:'ti-eye' },
-  '함정': { color:'#888780', icon:'ti-alert-triangle' },
-  '보류': { color:'#b8a8f0', icon:'ti-clock' },
-  '검토': { color:'#5aabf0', icon:'ti-search' },
+  '추천': { color:'#00c98a' },
+  '주시': { color:'#e8b800' },
+  '함정': { color:'#888780' },
+  '일반': { color:'#5aabf0' },
 };
 
 function loadData() {
@@ -146,17 +145,17 @@ function initMap() {
   });
 }
 
-// ── 마커 B 스타일 ──
+// ── 마커 E 스타일 (심플 도트) ──
 function addMarkers() {
   aptData.forEach(function(apt) {
     if (!apt.lat || !apt.lng) return;
-    var cfg = TAG_CONFIG[apt.tag] || TAG_CONFIG['검토'];
+    var cfg = TAG_CONFIG[apt.tag] || TAG_CONFIG['일반'];
     var color = cfg.color;
 
     var markerEl = document.createElement('div');
     markerEl.style.cssText = 'display:flex;flex-direction:column;align-items:center;cursor:pointer;';
-    markerEl.innerHTML = 
-      '<div style="width:14px;height:14px;border-radius:50%;background:' + color + ';border:2.5px solid white;box-shadow:0 2px 6px rgba(0,0,0,.5);"></div>'
+    markerEl.innerHTML =
+      '<div style="width:14px;height:14px;border-radius:50%;background:' + color + ';"></div>'
       + '<div style="width:2px;height:12px;background:' + color + ';opacity:.8;"></div>';
 
     var overlay = new kakao.maps.CustomOverlay({
