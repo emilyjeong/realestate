@@ -172,7 +172,7 @@ function addMarkers() {
 
     var overlay = new kakao.maps.CustomOverlay({
       position: new kakao.maps.LatLng(apt.lat, apt.lng),
-      content: html, yAnchor: 1, zIndex: 3,
+      content: html, zIndex: 3,
     });
     overlay.setMap(map);
     (function(a){
