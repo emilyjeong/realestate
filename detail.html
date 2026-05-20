@@ -22,7 +22,6 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{width:100%;min-height:100%;background:var(--bg)!important;font-family:var(--font-sans);color:var(--ink);color-scheme:dark;}
 
-/* 헤더 */
 #header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px var(--pad);padding-left:max(var(--pad),env(safe-area-inset-left));padding-right:max(var(--pad),env(safe-area-inset-right));display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;}
 .back-btn{width:34px;height:34px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--ink-mid);flex-shrink:0;cursor:pointer;text-decoration:none;}
 .header-info{flex:1;min-width:0;}
@@ -34,19 +33,15 @@ html,body{width:100%;min-height:100%;background:var(--bg)!important;font-family:
 .tag-함정{background:rgba(136,135,128,.15);color:#888780;border:1px solid rgba(136,135,128,.3);}
 .tag-일반{background:rgba(90,171,240,.15);color:var(--info);border:1px solid rgba(90,171,240,.3);}
 
-/* 스크롤 */
-#content{padding:12px var(--pad);padding-bottom:max(24px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px;}
+#content{padding:12px var(--pad);padding-bottom:max(120px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px;}
 
-/* 카드 */
 .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px;}
 .card-hi{background:var(--card-hi);border:1px solid var(--border-mid);border-radius:var(--radius);padding:12px;}
 .card-label{font-size:10px;font-weight:600;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;}
 
-/* 기본정보 */
 .meta-chips{display:flex;gap:6px;flex-wrap:wrap;}
 .chip{font-size:10px;color:var(--ink-mid);background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:3px 9px;font-family:var(--font-mono);}
 
-/* 가격 그리드 */
 .price-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
 .p-lbl{font-size:10px;color:var(--ink-dim);margin-bottom:2px;text-transform:uppercase;letter-spacing:.5px;}
 .p-val{font-size:15px;font-weight:700;font-family:var(--font-mono);color:var(--ink);}
@@ -54,10 +49,8 @@ html,body{width:100%;min-height:100%;background:var(--bg)!important;font-family:
 .p-val.pos{color:var(--pos);}
 .p-val.neg{color:var(--neg);}
 
-/* 차트 */
 .chart-container{position:relative;height:120px;}
 
-/* 코멘트 */
 .comment-item{padding:10px 0;border-bottom:1px solid var(--border);}
 .comment-item:last-of-type{border-bottom:none;}
 .c-header{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
@@ -67,16 +60,53 @@ html,body{width:100%;min-height:100%;background:var(--bg)!important;font-family:
 .c-text.collapsed{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
 .c-more{font-size:11px;color:var(--info);margin-top:6px;padding-left:15px;cursor:pointer;}
 
-/* 로딩 */
+/* 코멘트 추가 버튼 */
+.add-comment-btn{width:100%;padding:10px;background:rgba(90,171,240,.1);border:1px solid rgba(90,171,240,.25);border-radius:var(--radius-sm);color:var(--info);font-size:12px;font-weight:600;text-align:center;cursor:pointer;font-family:var(--font-sans);margin-top:8px;}
+
+/* 코멘트 입력 패널 */
+#comment-panel{
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--surface);border-top:1px solid var(--border-mid);
+  padding:16px var(--pad);padding-bottom:max(20px,env(safe-area-inset-bottom));
+  z-index:200;
+  transform:translateY(100%);
+  transition:transform .3s ease;
+}
+#comment-panel.open{transform:translateY(0);}
+.panel-label{font-size:11px;font-weight:600;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
+#comment-textarea{
+  width:100%;min-height:120px;max-height:240px;
+  background:var(--card);border:1px solid var(--border-mid);
+  border-radius:var(--radius-sm);padding:10px 12px;
+  font-family:var(--font-sans);font-size:13px;color:var(--ink);
+  resize:none;outline:none;
+  transition:border-color .2s;
+  line-height:1.6;
+}
+#comment-textarea:focus{border-color:var(--info);}
+#comment-textarea::placeholder{color:var(--ink-dim);}
+.panel-actions{display:flex;gap:8px;margin-top:10px;}
+.panel-btn{flex:1;padding:10px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;font-family:var(--font-sans);cursor:pointer;text-align:center;}
+.panel-btn.cancel{background:var(--card);border:1px solid var(--border);color:var(--ink-mid);}
+.panel-btn.save{background:rgba(0,201,138,.15);border:1px solid rgba(0,201,138,.3);color:var(--pos);}
+.panel-btn.save:disabled{opacity:.4;cursor:not-allowed;}
+
+/* 저장 중 스피너 */
+.save-loading{display:none;align-items:center;justify-content:center;gap:8px;font-size:12px;color:var(--ink-dim);}
+.mini-spinner{width:16px;height:16px;border:2px solid var(--border-mid);border-top-color:var(--pos);border-radius:50%;animation:spin .6s linear infinite;}
+
 #loading{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:50vh;gap:14px;}
 .spinner{width:36px;height:36px;border:3px solid var(--border-mid);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 .loading-text{font-size:13px;color:var(--ink-dim);font-family:var(--font-mono);}
 
-/* 에러 */
 #error{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:50vh;gap:12px;text-align:center;padding:var(--pad);}
 .error-icon{font-size:40px;}
 .error-text{font-size:14px;color:var(--ink-mid);}
+
+/* 토스트 */
+#toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--card-hi);border:1px solid var(--border-mid);border-radius:20px;padding:8px 18px;font-size:13px;color:var(--ink);opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;white-space:nowrap;z-index:300;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 </style>
 </head>
 <body>
@@ -102,9 +132,25 @@ html,body{width:100%;min-height:100%;background:var(--bg)!important;font-family:
 
 <div id="content" style="display:none;"></div>
 
+<!-- 코멘트 입력 패널 -->
+<div id="comment-panel">
+  <div class="panel-label" id="panel-month-label">2026-05 코멘트</div>
+  <textarea id="comment-textarea" placeholder="이 단지에 대한 내용을 자유롭게 작성해줘.&#10;엔터로 줄바꿈 가능!"></textarea>
+  <div class="panel-actions">
+    <button class="panel-btn cancel" onclick="closePanel()">취소</button>
+    <button class="panel-btn save" id="save-btn" onclick="saveComment()">저장</button>
+  </div>
+  <div class="save-loading" id="save-loading">
+    <div class="mini-spinner"></div>
+    <span>저장 중...</span>
+  </div>
+</div>
+
+<div id="toast"></div>
+
 <script>
-// URL에서 apt 파라미터 읽기
 var aptName = decodeURIComponent((new URLSearchParams(window.location.search)).get('apt') || '');
+var currentComments = [];
 
 if (!aptName) {
   showError('단지명이 없어요. 지도에서 다시 접근해주세요.');
@@ -116,88 +162,60 @@ function loadDetail() {
   fetch(CONFIG.SCRIPT_URL)
     .then(function(r){ return r.json(); })
     .then(function(json){
-      var apt = (json.apts || []).find(function(a){
-        return a.aptName === aptName;
-      });
-      var comments = (json.comments || []).filter(function(c){
-        return c.aptName === aptName;
-      });
-
-      if (!apt) {
-        showError('"' + aptName + '" 단지 정보를 찾을 수 없어요.');
-        return;
-      }
-
-      render(apt, comments);
+      var apt = (json.apts || []).find(function(a){ return a.aptName === aptName; });
+      currentComments = (json.comments || []).filter(function(c){ return c.aptName === aptName; });
+      if (!apt) { showError('"' + aptName + '" 단지 정보를 찾을 수 없어요.'); return; }
+      render(apt, currentComments);
     })
-    .catch(function(e){
-      showError('데이터 로드에 실패했어요. 잠시 후 다시 시도해주세요.');
-    });
+    .catch(function(){ showError('데이터 로드에 실패했어요.'); });
 }
 
 function render(apt, comments) {
-  // 헤더
   document.getElementById('h-name').textContent = apt.aptName;
   document.getElementById('h-addr').textContent = apt.address || '';
   var tagEl = document.getElementById('h-tag');
   tagEl.textContent = apt.tag || '';
   tagEl.className = 'tag-pill tag-' + (apt.tag || '일반');
 
-  // 컨텐츠 생성
   var content = document.getElementById('content');
   content.innerHTML = '';
 
-  // 기본정보 카드
+  // 기본정보
   var basicCard = document.createElement('div');
   basicCard.className = 'card';
   basicCard.innerHTML = '<div class="card-label">기본 정보</div>'
     + '<div class="meta-chips">'
-    + (apt.yearBuilt ? '<span class="chip">' + apt.yearBuilt + '년</span>' : '')
-    + (apt.totalDong ? '<span class="chip">' + apt.totalDong + '동</span>' : '')
+    + (apt.yearBuilt  ? '<span class="chip">' + apt.yearBuilt + '년</span>' : '')
+    + (apt.totalDong  ? '<span class="chip">' + apt.totalDong + '동</span>' : '')
     + (apt.totalUnits ? '<span class="chip">' + Number(apt.totalUnits).toLocaleString() + '세대</span>' : '')
-    + (apt.areaRange ? '<span class="chip">' + apt.areaRange + '</span>' : '')
+    + (apt.areaRange  ? '<span class="chip">' + apt.areaRange + '</span>' : '')
     + '</div>';
   content.appendChild(basicCard);
 
-  // 실거래가 카드
+  // 실거래가
   if (apt.median || apt.tradeCount) {
     var priceCard = document.createElement('div');
     priceCard.className = 'card-hi';
     priceCard.innerHTML = '<div class="card-label">실거래가 (최근 12개월' + (apt.areaRange ? ' · ' + apt.areaRange : '') + ')</div>'
       + '<div class="price-grid">'
-      + pItem('중앙값',   apt.median   ? (apt.median/10000).toFixed(1)   + '억' : '-', 'acc')
+      + pItem('중앙값',   apt.median    ? (apt.median/10000).toFixed(1)    + '억' : '-', 'acc')
       + pItem('거래건수', apt.tradeCount ? apt.tradeCount + '건' : '-', '')
-      + pItem('최저가',   apt.minPrice  ? (apt.minPrice/10000).toFixed(1) + '억' : '-', 'pos')
-      + pItem('최고가',   apt.maxPrice  ? (apt.maxPrice/10000).toFixed(1) + '억' : '-', 'neg')
+      + pItem('최저가',   apt.minPrice  ? (apt.minPrice/10000).toFixed(1)  + '억' : '-', 'pos')
+      + pItem('최고가',   apt.maxPrice  ? (apt.maxPrice/10000).toFixed(1)  + '억' : '-', 'neg')
       + '</div>'
       + '<div class="card-label">월별 거래건수</div>'
       + '<div class="chart-container"><canvas id="tradeChart"></canvas></div>';
     content.appendChild(priceCard);
 
-    // 차트 그리기
     if (apt.rawJson && apt.rawJson.length > 0) {
       setTimeout(function() {
-        var labels = apt.rawJson.map(function(d){
-          var ym = d.month.toString();
-          return ym.substring(0,4) + '-' + ym.substring(4,6);
-        });
-        var data = apt.rawJson.map(function(d){ return d.count; });
-
+        var labels = apt.rawJson.map(function(d){ var ym = d.month.toString(); return ym.substring(0,4) + '-' + ym.substring(4,6); });
+        var data   = apt.rawJson.map(function(d){ return d.count; });
         new Chart(document.getElementById('tradeChart'), {
           type: 'bar',
-          data: {
-            labels: labels,
-            datasets: [{
-              data: data,
-              backgroundColor: 'rgba(232,184,0,0.45)',
-              borderColor: 'rgba(232,184,0,0.8)',
-              borderWidth: 1,
-              borderRadius: 3,
-            }]
-          },
+          data: { labels: labels, datasets: [{ data: data, backgroundColor: 'rgba(232,184,0,0.45)', borderColor: 'rgba(232,184,0,0.8)', borderWidth: 1, borderRadius: 3 }] },
           options: {
-            responsive: true,
-            maintainAspectRatio: false,
+            responsive: true, maintainAspectRatio: false,
             plugins: { legend: { display: false } },
             scales: {
               x: { ticks: { color:'#565250', font:{ size:9, family:'JetBrains Mono' } }, grid: { color:'rgba(42,41,38,.5)' } },
@@ -209,43 +227,110 @@ function render(apt, comments) {
     }
   }
 
-  // 코멘트 카드
-  var commentCard = document.createElement('div');
-  commentCard.className = 'card';
+  // 코멘트
+  renderComments(comments, content);
 
-  if (comments.length === 0) {
-    commentCard.innerHTML = '<div class="card-label">나의 코멘트</div>'
-      + '<div style="font-size:13px;color:var(--ink-dim);padding:8px 0;">아직 코멘트가 없어요.</div>';
-  } else {
-    // 최신순 정렬
-    comments.sort(function(a,b){
-      return (b.yearMonth||'').toString().localeCompare((a.yearMonth||'').toString());
-    });
-
-    var commentsHTML = '<div class="card-label">나의 코멘트</div>';
-    comments.forEach(function(c, i) {
-      var text = (c.comment || '').toString();
-      var id = 'comment-' + i;
-      var isLong = text.length > 80;
-
-      commentsHTML += '<div class="comment-item">'
-        + '<div class="c-header"><div class="c-dot"></div><span class="c-date">' + (c.yearMonth || '') + '</span></div>'
-        + '<div class="c-text' + (isLong ? ' collapsed' : '') + '" id="' + id + '">' + text.replace(/\n/g, '<br>') + '</div>'
-        + (isLong ? '<div class="c-more" onclick="toggleComment(\'' + id + '\', this)">더 보기 ↓</div>' : '')
-        + '</div>';
-    });
-    commentCard.innerHTML = commentsHTML;
-  }
-
-  content.appendChild(commentCard);
-
-  // 로딩 숨기고 컨텐츠 표시
   document.getElementById('loading').style.display = 'none';
   content.style.display = 'flex';
 }
 
+function renderComments(comments, container) {
+  var commentCard = document.createElement('div');
+  commentCard.className = 'card';
+  commentCard.id = 'comment-card';
+
+  var html = '<div class="card-label">나의 코멘트</div>';
+
+  if (comments.length === 0) {
+    html += '<div style="font-size:13px;color:var(--ink-dim);padding:8px 0 4px;">아직 코멘트가 없어요.</div>';
+  } else {
+    comments.sort(function(a,b){ return (b.yearMonth||'').toString().localeCompare((a.yearMonth||'').toString()); });
+    comments.forEach(function(c, i) {
+      var text  = (c.comment || '').toString();
+      var id    = 'comment-' + i;
+      // yearMonth가 날짜 형식이면 연월만 표시
+      var ym    = (c.yearMonth || '').toString();
+      var displayDate = ym.length >= 7 ? ym.substring(0, 7) : ym;
+      var isLong = text.length > 80;
+      html += '<div class="comment-item">'
+        + '<div class="c-header"><div class="c-dot"></div><span class="c-date">' + displayDate + '</span></div>'
+        + '<div class="c-text' + (isLong ? ' collapsed' : '') + '" id="' + id + '">' + text.replace(/\n/g, '<br>') + '</div>'
+        + (isLong ? '<div class="c-more" onclick="toggleComment(\'' + id + '\', this)">더 보기 ↓</div>' : '')
+        + '</div>';
+    });
+  }
+
+  html += '<div class="add-comment-btn" onclick="openPanel()">+ 코멘트 추가</div>';
+  commentCard.innerHTML = html;
+
+  if (container) container.appendChild(commentCard);
+  else {
+    var existing = document.getElementById('comment-card');
+    if (existing) existing.innerHTML = commentCard.innerHTML;
+  }
+}
+
+// ── 코멘트 패널 ──
+function openPanel() {
+  var now = new Date();
+  var ym  = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  document.getElementById('panel-month-label').textContent = ym + ' 코멘트';
+  document.getElementById('comment-textarea').value = '';
+  document.getElementById('comment-panel').classList.add('open');
+  setTimeout(function(){ document.getElementById('comment-textarea').focus(); }, 300);
+}
+
+function closePanel() {
+  document.getElementById('comment-panel').classList.remove('open');
+  document.getElementById('comment-textarea').blur();
+}
+
+function saveComment() {
+  var text = document.getElementById('comment-textarea').value.trim();
+  if (!text) { showToast('내용을 입력해줘!'); return; }
+
+  var saveBtn = document.getElementById('save-btn');
+  var loading = document.getElementById('save-loading');
+  saveBtn.disabled = true;
+  saveBtn.style.display = 'none';
+  loading.style.display = 'flex';
+
+  // Apps Script addComment 호출
+  var url = CONFIG.SCRIPT_URL
+    + '?action=addComment'
+    + '&aptName=' + encodeURIComponent(aptName)
+    + '&comment=' + encodeURIComponent(text);
+
+  fetch(url)
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      if (res.success) {
+        closePanel();
+        showToast('✅ 저장됐어!');
+        // 코멘트 목록 새로고침
+        currentComments = res.comments || currentComments;
+        renderComments(currentComments, null);
+      } else {
+        showToast('❌ 저장 실패: ' + (res.error || ''));
+      }
+    })
+    .catch(function(){ showToast('❌ 저장 실패. 다시 시도해줘!'); })
+    .finally(function(){
+      saveBtn.disabled = false;
+      saveBtn.style.display = '';
+      loading.style.display = 'none';
+    });
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 2500);
+}
+
 function pItem(label, val, cls) {
-  return '<div><div class="p-lbl">' + label + '</div><div class="p-val ' + cls + '">' + val + '</div></div>';
+  return '<div><div class="p-lbl">'+label+'</div><div class="p-val '+cls+'">'+val+'</div></div>';
 }
 
 function toggleComment(id, btn) {
