@@ -73,49 +73,45 @@ html,body{width:100%;height:100%;background:var(--bg)!important;font-family:var(
 </head>
 <body>
 <div id="app">
-  <div id="header">
-    <div class="header-title">부동산 지도</div>
-    <a href="https://emilyjeong.github.io/home" class="home-btn">🏠</a>
-  </div>
+<div id="header">
+<div class="header-title">부동산 지도</div>
+<a href="https://emilyjeong.github.io/home" class="home-btn">🏠</a>
+</div>
 
-  <div id="search-area">
-    <div id="searchbar">
-      <div class="search-wrap" id="search-wrap">
-        <span style="color:var(--ink-dim);font-size:14px;flex-shrink:0;">🔍</span>
-        <input type="text" placeholder="등록된 단지명 검색" id="search-input" autocomplete="off">
-        <span class="search-clear" id="search-clear">✕</span>
-      </div>
-    </div>
-    <div id="search-results"></div>
-  </div>
+<div id="search-area">
+<div id="searchbar">
+<div class="search-wrap" id="search-wrap">
+<span style="color:var(--ink-dim);font-size:14px;flex-shrink:0;">🔍</span>
+<input type="text" placeholder="등록된 단지명 검색" id="search-input" autocomplete="off">
+<span class="search-clear" id="search-clear">✕</span>
+</div>
+</div>
+<div id="search-results"></div>
+</div>
 
-  <div id="map-container">
-    <div id="map"></div>
-    <div id="map-loading">
-      <div class="spinner"></div>
-      <span class="loading-text">데이터 불러오는 중...</span>
-    </div>
-    <div id="popup">
-      <span class="popup-close" id="popup-close">✕</span>
-      <div class="popup-header">
-        <div class="popup-tag-icon" id="popup-icon"><i class="ti ti-building"></i></div>
-        <div class="popup-name" id="popup-name"></div>
-      </div>
-      <div class="popup-grid" id="popup-grid"></div>
-      <div class="popup-btn" id="popup-detail-btn">상세 데이터 보기 →</div>
-    </div>
-  </div>
+<div id="map-container">
+<div id="map"></div>
+<div id="map-loading">
+<div class="spinner"></div>
+<span class="loading-text">데이터 불러오는 중...</span>
+</div>
+<div id="popup">
+<span class="popup-close" id="popup-close">✕</span>
+<div class="popup-header">
+<div class="popup-tag-icon" id="popup-icon"><i class="ti ti-building"></i></div>
+<div class="popup-name" id="popup-name"></div>
+</div>
+<div class="popup-grid" id="popup-grid"></div>
+<div class="popup-btn" id="popup-detail-btn">상세 데이터 보기 →</div>
+</div>
+</div>
 </div>
 
 <script>
 var map, aptData = [], selectedApt = null;
 
-var TAG_CONFIG = {
-  '추천': { color:'#00c98a' },
-  '주시': { color:'#e8b800' },
-  '함정': { color:'#888780' },
-  '일반': { color:'#5aabf0' },
-};
+// 색상은 API(apt.color)에서 직접 가져옴 — TAG_CONFIG 불필요
+var FALLBACK_COLOR = '#6a6862';
 
 function loadData() {
   fetch(CONFIG.SCRIPT_URL)
@@ -145,12 +141,11 @@ function initMap() {
   });
 }
 
-// ── 마커 E 스타일 (심플 도트) ──
+// ── 마커 (심플 도트) ──
 function addMarkers() {
   aptData.forEach(function(apt) {
     if (!apt.lat || !apt.lng) return;
-    var cfg = TAG_CONFIG[apt.tag] || TAG_CONFIG['일반'];
-    var color = cfg.color;
+    var color = apt.color || FALLBACK_COLOR;
 
     var markerEl = document.createElement('div');
     markerEl.style.cssText = 'display:flex;flex-direction:column;align-items:center;cursor:pointer;';
@@ -176,10 +171,10 @@ function addMarkers() {
 
 function showPopup(apt) {
   selectedApt = apt;
-  var cfg = TAG_CONFIG[apt.tag] || TAG_CONFIG['검토'];
+  var color = apt.color || FALLBACK_COLOR;
   var iconEl = document.getElementById('popup-icon');
-  iconEl.style.background = cfg.color;
-  iconEl.innerHTML = '<i class="ti ' + cfg.icon + '" style="font-size:14px;color:#fff;"></i>';
+  iconEl.style.background = color;
+  iconEl.innerHTML = '<i class="ti ti-building" style="font-size:14px;color:#fff;"></i>';
   document.getElementById('popup-name').textContent = apt.aptName;
   document.getElementById('popup-grid').innerHTML =
     pi('중앙값',  apt.median     ? (apt.median/10000).toFixed(1)   + '억' : '-', 'acc') +
@@ -229,9 +224,9 @@ function doSearch(q) {
     sresult.innerHTML = '<div class="search-empty">등록된 단지가 없어요</div>';
   } else {
     sresult.innerHTML = filtered.map(function(a,i){
-      var cfg = TAG_CONFIG[a.tag] || TAG_CONFIG['검토'];
+      var color = a.color || FALLBACK_COLOR;
       return '<div class="sri" data-idx="'+i+'">'
-        +'<div class="sri-dot" style="background:'+cfg.color+';"></div>'
+        +'<div class="sri-dot" style="background:'+color+';"></div>'
         +'<div><div class="sri-name">'+a.aptName+'</div>'
         +'<div class="sri-addr">'+(a.address||'')+'</div></div>'
         +'</div>';
