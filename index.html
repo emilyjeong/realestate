@@ -215,13 +215,10 @@ function applyFilter() {
     else if (t === '하멜른') show = activeFilters['하멜른'];
     else if (t === '임실장') show = activeFilters['임실장'];
     else                     show = true;
-    } else if (t === '함정')  show = activeFilters['함정'];
-    else if (t === '하멜른')  show = activeFilters['하멜른'];
-    else if (t === '임실장')  show = activeFilters['임실장'];
-    else                      show = true;  // '나머지'는 항상 표시
     o.overlay.setMap(show ? map : null);
   });
 }
+
 
 document.querySelectorAll('.filter-chip').forEach(function(chip) {
   chip.addEventListener('click', function() {
