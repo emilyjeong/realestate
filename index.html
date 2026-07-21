@@ -76,10 +76,10 @@ html,body{width:100%;height:100%;background:var(--bg)!important;font-family:var(
 .filter-chip .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
 .filter-chip .star{font-size:12px;line-height:1;}
 .filter-chip.on[data-f="all"]   {border-color:var(--ink-mid);background:var(--card-hi);}
-.filter-chip.on[data-f="임실장"] {border-color:var(--pos);background:rgba(0,201,138,.12);}
-.filter-chip.on[data-f="하멜른"] {border-color:var(--info);background:rgba(90,171,240,.12);}
-.filter-chip.on[data-f="함정"]   {border-color:var(--neg);background:rgba(240,77,98,.12);}
-.filter-chip.on[data-f="별"]     {border-color:var(--accent);background:rgba(232,184,0,.12);}
+.filter-chip.on[data-f="임실장"] {border-color:#00c98a;background:rgba(0,201,138,.12);}
+.filter-chip.on[data-f="하멜른"] {border-color:#0091ff;background:rgba(0,145,255,.12);}
+.filter-chip.on[data-f="함정"]   {border-color:#6b6862;background:rgba(107,104,98,.15);}
+.filter-chip.on[data-f="별"]     {border-color:#f0327d;background:rgba(240,50,125,.12);}
 
 @keyframes starBounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
   
@@ -103,8 +103,8 @@ html,body{width:100%;height:100%;background:var(--bg)!important;font-family:var(
 <div id="filter-bar">
 <div class="filter-chip on" data-f="all">전체</div>
 <div class="filter-chip on" data-f="임실장"><span class="dot" style="background:#00c98a;"></span>임실장</div>
-<div class="filter-chip on" data-f="하멜른"><span class="dot" style="background:#5aabf0;"></span>하멜른</div>
-<div class="filter-chip on" data-f="함정"><span class="dot" style="background:#f04d62;"></span>함정</div>
+<div class="filter-chip on" data-f="하멜른"><span class="dot" style="background:#0091ff;"></span>하멜른</div>
+<div class="filter-chip on" data-f="함정"><span class="dot" style="background:#6b6862;"></span>함정</div>
 <div class="filter-chip on" data-f="별"><span class="star">⭐</span>즐겨찾기</div>
 </div>
 <div id="search-results"></div>
