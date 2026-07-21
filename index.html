@@ -224,7 +224,7 @@ document.querySelectorAll('.filter-chip').forEach(function(chip) {
   chip.addEventListener('click', function() {
     var f = chip.getAttribute('data-f');
     if (f === 'all') {
-      // 전체 토글: 현재 전체가 켜져있으면 다 끄고, 아니면 다 켜기
+      // 전체 토글
       var turnOn = !chip.classList.contains('on');
       document.querySelectorAll('.filter-chip').forEach(function(c){
         c.classList.toggle('on', turnOn);
@@ -233,11 +233,11 @@ document.querySelectorAll('.filter-chip').forEach(function(chip) {
     } else {
       chip.classList.toggle('on');
       activeFilters[f] = chip.classList.contains('on');
-      // 개별 칩 중 하나라도 꺼지면 '나머지'(회색)는 계속 보이게 true 유지
-      activeFilters['나머지'] = true;
       // 전체 칩은 개별이 다 켜졌을 때만 on
       var allOn = activeFilters['임실장'] && activeFilters['하멜른'] && activeFilters['함정'] && activeFilters['별'];
       document.querySelector('.filter-chip[data-f="all"]').classList.toggle('on', allOn);
+      // 회색(나머지)은 전체가 켜진 상태에서만 보임
+      activeFilters['나머지'] = allOn;
     }
     applyFilter();
   });
