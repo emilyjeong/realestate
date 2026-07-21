@@ -204,8 +204,8 @@ function addMarkers() {
 }
 
 // ── 필터 ──
-var activeFilters = { '임실장': true, '하멜른': true, '함정': true, '별': true };
-
+var activeFilters = { '임실장': true, '하멜른': true, '함정': true, '별': true, '나머지': true };
+  
 function applyFilter() {
   allOverlays.forEach(function(o) {
     var t = o.apt.tag;
@@ -214,7 +214,7 @@ function applyFilter() {
     else if (t === '함정')   show = activeFilters['함정'];
     else if (t === '하멜른') show = activeFilters['하멜른'];
     else if (t === '임실장') show = activeFilters['임실장'];
-    else                     show = true;
+    else                     show = activeFilters['나머지'];
     o.overlay.setMap(show ? map : null);
   });
 }
@@ -224,13 +224,18 @@ document.querySelectorAll('.filter-chip').forEach(function(chip) {
   chip.addEventListener('click', function() {
     var f = chip.getAttribute('data-f');
     if (f === 'all') {
-      // 전체 토글: 다 켜기
-      document.querySelectorAll('.filter-chip').forEach(function(c){ c.classList.add('on'); });
-      activeFilters = { '임실장': true, '하멜른': true, '함정': true, '별': true };
+      // 전체 토글: 현재 전체가 켜져있으면 다 끄고, 아니면 다 켜기
+      var turnOn = !chip.classList.contains('on');
+      document.querySelectorAll('.filter-chip').forEach(function(c){
+        c.classList.toggle('on', turnOn);
+      });
+      activeFilters = { '임실장': turnOn, '하멜른': turnOn, '함정': turnOn, '별': turnOn, '나머지': turnOn };
     } else {
       chip.classList.toggle('on');
       activeFilters[f] = chip.classList.contains('on');
-      // 전체 칩 상태 갱신
+      // 개별 칩 중 하나라도 꺼지면 '나머지'(회색)는 계속 보이게 true 유지
+      activeFilters['나머지'] = true;
+      // 전체 칩은 개별이 다 켜졌을 때만 on
       var allOn = activeFilters['임실장'] && activeFilters['하멜른'] && activeFilters['함정'] && activeFilters['별'];
       document.querySelector('.filter-chip[data-f="all"]').classList.toggle('on', allOn);
     }
