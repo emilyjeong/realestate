@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>좌표 찍기</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0a09;--surface:#0f0f0e;--card:#161513;--card-hi:#1c1b19;
+  --border:#2a2926;--border-mid:#353330;
+  --ink:#f0ede8;--ink-mid:#9a9690;--ink-dim:#565250;
+  --pos:#00c98a;--neg:#f04d62;--accent:#e8b800;--info:#0091ff;--pink:#f0327d;
+  --radius:14px;--radius-sm:8px;--pad:16px;
+  --font-sans:'Pretendard',-apple-system,sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;background:var(--bg);font-family:var(--font-sans);color:var(--ink);overflow:hidden;color-scheme:dark;}
+#app{display:flex;flex-direction:column;height:100vh;height:100dvh;}
+
+#header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px var(--pad);display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.home-btn{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;background:var(--card-hi);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:17px;text-decoration:none;}
+
+#toolbar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px var(--pad);display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;}
+.btn{padding:7px 12px;background:var(--card);border:1px solid var(--border-mid);border-radius:var(--radius-sm);font-size:12px;font-weight:600;color:var(--ink-mid);cursor:pointer;font-family:var(--font-sans);}
+.btn.on{color:var(--ink);border-color:var(--info);background:rgba(0,145,255,.12);}
+.btn.danger{border-color:rgba(240,77,98,.4);color:var(--neg);}
+.btn.go{border-color:rgba(0,201,138,.4);color:var(--pos);}
+
+#searchbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 var(--pad) 10px;display:flex;gap:6px;flex-shrink:0;}
+#searchbar input{flex:1;background:var(--card);border:1px solid var(--border-mid);border-radius:var(--radius-sm);padding:9px 12px;font-family:var(--font-sans);font-size:13px;color:var(--ink);outline:none;}
+#searchbar input::placeholder{color:var(--ink-dim);}
+
+#map-container{flex:1;position:relative;}
+#map{width:100%;height:100%;}
+
+#output{background:var(--surface);border-top:1px solid var(--border);padding:12px var(--pad);flex-shrink:0;max-height:38vh;overflow-y:auto;}
+.out-label{font-size:10px;font-weight:600;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;}
+.out-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px;font-family:var(--font-mono);font-size:12px;color:var(--ink);word-break:break-all;line-height:1.6;min-height:42px;}
+.out-row{display:flex;gap:8px;margin-top:8px;}
+.hint{font-size:11px;color:var(--ink-dim);margin-top:8px;line-height:1.6;}
+.count{font-family:var(--font-mono);color:var(--info);font-weight:700;}
+</style>
+</head>
+<body>
+<div id="app">
+
+<div id="header">
+<div class="header-title">📍 좌표 찍기</div>
+<a href="https://emilyjeong.github.io/market" class="home-btn">🗺</a>
+</div>
+
+<div id="toolbar">
+<div class="btn on" id="mode-point">단일 좌표</div>
+<div class="btn" id="mode-poly">구역(폴리곤)</div>
+<div class="btn danger" id="btn-undo">↩ 되돌리기</div>
+<div class="btn danger" id="btn-clear">전체 지우기</div>
+</div>
+
+<div id="searchbar">
+<input type="text" id="search-input" placeholder="주소·장소 검색 (예: 잠원동 56-2)" autocomplete="off">
+<div class="btn go" id="btn-search">검색</div>
+</div>
+
+<div id="map-container"><div id="map"></div></div>
+
+<div id="output">
+<div class="out-label" id="out-label">좌표 (lat, lng)</div>
+<div class="out-box" id="out-box">지도를 탭하면 좌표가 여기 나와요</div>
+<div class="out-row">
+<div class="btn go" id="btn-copy" style="flex:1;text-align:center;">📋 복사</div>
+</div>
+<div class="hint" id="hint">단일 좌표 모드: 지도를 탭하면 위도·경도가 나와요. 시트 lat / lng 열에 넣으세요.</div>
+</div>
+
+</div>
+
+<script>
+var map, mode = 'point';
+var points = [];        // 찍은 좌표들
+var markers = [];       // 마커 오버레이
+var polygon = null;
+
+function initMap(){
+  map = new kakao.maps.Map(document.getElementById('map'), {
+    center: new kakao.maps.LatLng(37.5127, 127.0155),  // 잠원동 근처
+    level: 4
+  });
+
+  kakao.maps.event.addListener(map, 'click', function(e){
+    var ll = e.latLng;
+    addPoint(ll.getLat(), ll.getLng());
+  });
+}
+
+function addPoint(lat, lng){
+  if (mode === 'point') {
+    clearAll();
+  }
+  points.push([lat, lng]);
+  drawMarker(lat, lng, points.length);
+  if (mode === 'poly') drawPolygon();
+  render();
+}
+
+function drawMarker(lat, lng, idx){
+  var el = document.createElement('div');
+  el.style.cssText = 'display:flex;flex-direction:column;align-items:center;';
+  el.innerHTML =
+    '<div style="width:18px;height:18px;border-radius:50%;background:#f0327d;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;font-family:monospace;box-shadow:0 1px 4px rgba(0,0,0,.6);">'
+    + (mode === 'poly' ? idx : '●') + '</div>'
+    + '<div style="width:2px;height:8px;background:#f0327d;"></div>';
+  var ov = new kakao.maps.CustomOverlay({
+    position: new kakao.maps.LatLng(lat, lng),
+    content: el, zIndex: 5
+  });
+  ov.setMap(map);
+  markers.push(ov);
+}
+
+function drawPolygon(){
+  if (polygon) polygon.setMap(null);
+  if (points.length < 3) return;
+  polygon = new kakao.maps.Polygon({
+    path: points.map(function(p){ return new kakao.maps.LatLng(p[0], p[1]); }),
+    strokeWeight: 2, strokeColor: '#0091ff', strokeOpacity: .9,
+    fillColor: '#0091ff', fillOpacity: .25
+  });
+  polygon.setMap(map);
+}
+
+function clearAll(){
+  markers.forEach(function(m){ m.setMap(null); });
+  markers = []; points = [];
+  if (polygon) { polygon.setMap(null); polygon = null; }
+  render();
+}
+
+function undo(){
+  if (points.length === 0) return;
+  points.pop();
+  var m = markers.pop();
+  if (m) m.setMap(null);
+  if (mode === 'poly') drawPolygon();
+  render();
+}
+
+function render(){
+  var box = document.getElementById('out-box');
+  if (points.length === 0) {
+    box.textContent = mode === 'point'
+      ? '지도를 탭하면 좌표가 여기 나와요'
+      : '구역 경계를 순서대로 탭하세요 (3점 이상)';
+    return;
+  }
+  if (mode === 'point') {
+    var p = points[0];
+    box.innerHTML = '<b>위도(lat)</b> ' + p[0].toFixed(7)
+                  + '<br><b>경도(lng)</b> ' + p[1].toFixed(7);
+  } else {
+    var arr = points.map(function(p){
+      return '[' + p[0].toFixed(6) + ',' + p[1].toFixed(6) + ']';
+    }).join(',');
+    box.innerHTML = '<span class="count">' + points.length + '개 점</span><br>[' + arr + ']';
+  }
+}
+
+function copyOut(){
+  var text;
+  if (points.length === 0) { alert('찍은 좌표가 없어요'); return; }
+  if (mode === 'point') {
+    text = points[0][0].toFixed(7) + '\t' + points[0][1].toFixed(7);
+  } else {
+    text = '[' + points.map(function(p){
+      return '[' + p[0].toFixed(6) + ',' + p[1].toFixed(6) + ']';
+    }).join(',') + ']';
+  }
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select(); ta.setSelectionRange(0, 99999);
+  try { document.execCommand('copy'); alert('복사 완료!\n\n' + text); }
+  catch(e){ alert('복사 실패 — 직접 선택해서 복사하세요'); }
+  document.body.removeChild(ta);
+}
+
+// ── 모드 전환 ──
+document.getElementById('mode-point').addEventListener('click', function(){
+  mode = 'point';
+  this.classList.add('on');
+  document.getElementById('mode-poly').classList.remove('on');
+  document.getElementById('out-label').textContent = '좌표 (lat, lng)';
+  document.getElementById('hint').textContent = '단일 좌표 모드: 지도를 탭하면 위도·경도가 나와요. 시트 lat / lng 열에 넣으세요.';
+  clearAll();
+});
+
+document.getElementById('mode-poly').addEventListener('click', function(){
+  mode = 'poly';
+  this.classList.add('on');
+  document.getElementById('mode-point').classList.remove('on');
+  document.getElementById('out-label').textContent = '구역 좌표 배열';
+  document.getElementById('hint').textContent = '구역 모드: 경계를 따라 순서대로 탭하세요. 마지막 점과 첫 점은 자동으로 이어져요. 복사해서 zone_list 시트에 넣으세요.';
+  clearAll();
+});
+
+document.getElementById('btn-undo').addEventListener('click', undo);
+document.getElementById('btn-clear').addEventListener('click', clearAll);
+document.getElementById('btn-copy').addEventListener('click', copyOut);
+
+// ── 검색 ──
+function doSearch(){
+  var q = document.getElementById('search-input').value.trim();
+  if (!q) return;
+  var ps = new kakao.maps.services.Places();
+  ps.keywordSearch(q, function(data, status){
+    if (status === kakao.maps.services.Status.OK && data.length > 0){
+      map.setCenter(new kakao.maps.LatLng(data[0].y, data[0].x));
+      map.setLevel(3);
+    } else {
+      // 키워드 실패 시 주소 검색
+      var geocoder = new kakao.maps.services.Geocoder();
+      geocoder.addressSearch(q, function(res, st){
+        if (st === kakao.maps.services.Status.OK && res.length > 0){
+          map.setCenter(new kakao.maps.LatLng(res[0].y, res[0].x));
+          map.setLevel(3);
+        } else {
+          alert('검색 결과가 없어요');
+        }
+      });
+    }
+  });
+}
+document.getElementById('btn-search').addEventListener('click', doSearch);
+document.getElementById('search-input').addEventListener('keydown', function(e){
+  if (e.key === 'Enter') doSearch();
+});
+
+// ── SDK 로드 ──
+var s = document.createElement('script');
+s.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=c39d5438e2baf9e5a326fb7d5771faa4&autoload=false&libraries=services';
+s.onload = function(){ kakao.maps.load(initMap); };
+document.head.appendChild(s);
+</script>
+</body>
+</html>
